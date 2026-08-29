@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Transactions</title>
+  <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="design-system.css">
+  <link rel="stylesheet" href="transactions.css">
+</head>
+<body class="bf-has-nav">
+
+  <div class="container">
+
+    <h1>My Transactions 🧾</h1>
+
+    <!-- Balance summary -->
+    <div class="txn-balance-card">
+      <div class="txn-balance-label">Current Balance</div>
+      <div class="txn-balance-amount" id="currentBalance">₹0</div>
+      <div class="txn-balance-sub">
+        <span class="txn-in">↓ In: <b id="totalIn">₹0</b></span>
+        <span class="txn-out">↑ Out: <b id="totalOut">₹0</b></span>
+      </div>
+    </div>
+
+    <a href="withdraw.html" style="text-decoration:none;">
+      <button type="button" class="bf-btn bf-btn-primary bf-btn-block" style="margin-bottom:18px;">💸 Withdraw Funds</button>
+    </a>
+
+    <!-- Filters (Khatabook style) -->
+    <div class="txn-filters">
+
+      <div class="txn-filter-tabs" id="typeTabs">
+        <button type="button" class="txn-tab active" data-type="all">All</button>
+        <button type="button" class="txn-tab" data-type="credit">Credit (In)</button>
+        <button type="button" class="txn-tab" data-type="debit">Debit (Out)</button>
+      </div>
+
+      <div class="txn-date-row">
+        <div class="txn-field">
+          <label>From</label>
+          <input type="date" id="fromDate">
+        </div>
+        <div class="txn-field">
+          <label>To</label>
+          <input type="date" id="toDate">
+        </div>
+        <button type="button" id="clearFilters" class="txn-clear-btn">Clear</button>
+      </div>
+
+      <input type="text" id="txnSearch" class="txn-search" placeholder="🔍 Search by reason...">
+
+    </div>
+
+    <!-- List -->
+    <div id="txnList"></div>
+
+  </div>
+
+  <nav class="bottom-nav">
+    <a href="home.html"><span>🏠</span><p>Home</p></a>
+    <a href="wishlist.html"><span>😊</span><p>Liked</p></a>
+    <a href="orders.html"><span>📦</span><p>Orders</p></a>
+    <a href="profile.html"><span>🏪</span><p>My Account</p></a>
+  </nav>
+
+  <script type="module" src="transactions.js"></script>
+  <script type="module" src="profile-menu.js"></script>
+
+</body>
+</html>

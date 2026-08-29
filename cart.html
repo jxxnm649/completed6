@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Cart</title>
+  <link rel="stylesheet" href="theme.css">
+    <link rel="stylesheet" href="products.css">
+  <link rel="stylesheet" href="cart.css">
+</head>
+<body class="bf-has-nav">
+
+<h1>My Cart 🛒</h1>
+
+<div id="cartItems"></div>
+
+<div class="cart-summary">
+  <p>Total: <span class="cart-total-amount">₹<span id="cartTotal">0</span></span></p>
+</div>
+
+<button id="checkoutBtn" onclick="window.location.href='checkout.html'">
+  Checkout
+</button>
+
+<nav class="bottom-nav">
+  <a href="home.html"><span>🏠</span><p>Home</p></a>
+  <a href="wishlist.html"><span>😊</span><p>Liked</p></a>
+  <a href="orders.html"><span>📦</span><p>Orders</p></a>
+  <a href="profile.html"><span>🏪</span><p>My Account</p></a>
+</nav>
+
+<script type="module" src="cart.js"></script>
+<script type="module" src="profile-menu.js"></script>
+</body>
+</html>

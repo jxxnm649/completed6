@@ -1,0 +1,40 @@
+#wishlistItems{
+    padding: 20px;
+}
+
+.move-btn{
+    background: var(--leaf);
+    color: #fff;
+}
+.move-btn:hover{
+    background: #256640;
+}
+
+.remove-btn{
+    background: var(--rust-bg);
+    color: var(--rust);
+}
+.remove-btn:hover{
+    background: var(--rust);
+    color: #fff;
+}
+
+/* Grid cards reuse the shared .card/.product-card sizing (theme.css),
+   which hides all <p> tags inside .card-content by default — keep
+   just the price visible so the tile stays compact like the home grid. */
+#wishlistItems .card-content p{ display: none; }
+#wishlistItems .card-content p.price{
+  display: block;
+  font-weight: 700;
+  color: var(--ink);
+  font-size: 14px;
+}
+#wishlistItems .card-content{ display: flex; flex-direction: column; gap: 4px; }
+#wishlistItems .move-btn, #wishlistItems .remove-btn{
+  padding: 8px 6px;
+  font-size: 12px;
+  border-radius: var(--radius-sm);
+  border: none;
+  cursor: pointer;
+  width: 100%;
+}

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout</title>
+
+  <link rel="stylesheet" href="theme.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bf-has-nav">
+
+<div class="container checkout-container">
+
+<h1>Checkout</h1>
+
+<div id="orderSummary" class="order-summary"></div>
+
+<form id="checkoutForm" class="checkout-form">
+
+  <label for="customerName">Full Name</label>
+  <input
+    type="text"
+    id="customerName"
+    placeholder="Your full name"
+    required
+  >
+
+  <label for="mobile">Mobile Number</label>
+  <input
+    type="tel"
+    id="mobile"
+    placeholder="10-digit mobile number"
+    required
+  >
+
+  <label for="address">Delivery Address</label>
+  <textarea
+    id="address"
+    placeholder="House no, street, area, city, pincode"
+    required
+  ></textarea>
+
+  <label class="payment-label">Payment Method</label>
+  <div class="payment-methods">
+    <label class="payment-option">
+      <input type="radio" name="paymentMethod" value="online" checked>
+      <span>💳 Pay Online (Razorpay)</span>
+    </label>
+    <label class="payment-option">
+      <input type="radio" name="paymentMethod" value="cod">
+      <span>💵 Cash on Delivery</span>
+    </label>
+  </div>
+
+  <button type="submit" id="placeOrderBtn">
+    Place Order
+  </button>
+
+</form>
+</div>
+
+<nav class="bottom-nav">
+  <a href="home.html"><span>🏠</span><p>Home</p></a>
+  <a href="wishlist.html"><span>😊</span><p>Liked</p></a>
+  <a href="orders.html"><span>📦</span><p>Orders</p></a>
+  <a href="profile.html"><span>🏪</span><p>My Account</p></a>
+</nav>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script type="module" src="checkout.js"></script>
+<script type="module" src="profile-menu.js"></script>
+
+</body>
+</html>

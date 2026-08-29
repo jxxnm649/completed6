@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bestify Store</title>
+
+    <link rel="stylesheet" href="theme.css">
+    <link rel="stylesheet" href="home.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+
+<body class="bf-has-nav">
+
+    <div class="container">
+
+        <div class="brand-header">
+            <span class="brand-text">Bestifymobile</span>
+
+            <div class="brand-header-actions">
+                <a href="quick-order.html" class="offer-btn" aria-label="Cover offer">
+                    <span class="offer-btn-badge">1</span>
+                    <i class="fa-solid fa-tags"></i>
+                    <span>OFFER</span>
+                </a>
+
+                <button class="menu-toggle" id="menuToggle" aria-label="Menu" aria-expanded="false">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Menu dropdown (social links) -->
+        <div class="menu-dropdown" id="menuDropdown">
+            <a href="https://chat.whatsapp.com/Cks7jxkxJJKGBnepHs8U5j" target="_blank" rel="noopener" class="menu-link">
+                <i class="fa-brands fa-whatsapp" style="color:#25D366"></i> WhatsApp Community
+            </a>
+            <a href="https://whatsapp.com/channel/0029VbBwTCkDp2QGRkvcaq2v" target="_blank" rel="noopener" class="menu-link">
+                <i class="fa-brands fa-whatsapp" style="color:#25D366"></i> WhatsApp Updates
+            </a>
+            <a href="https://www.instagram.com/bestify_mobile_kolavi" target="_blank" rel="noopener" class="menu-link">
+                <i class="fa-brands fa-instagram" style="color:#d6249f"></i> Instagram
+            </a>
+            <a href="https://youtube.com/@bestifymobilekolavi" target="_blank" rel="noopener" class="menu-link">
+                <i class="fa-brands fa-youtube" style="color:#FF0000"></i> YouTube
+            </a>
+        </div>
+
+        <!-- Search -->
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="🔍 Search Products">
+        </div>
+
+        <!-- Guided product finder -->
+        <a href="quick-order.html" style="display:flex;align-items:center;gap:10px;background:var(--paper-dim);border:1.5px solid var(--line);border-radius:var(--radius);padding:12px 14px;margin:0 0 14px;text-decoration:none;color:var(--ink);">
+            <span style="font-size:22px;">📱</span>
+            <span>
+                <span style="display:block;font-weight:700;font-size:13px;">Find accessories for your phone</span>
+                <span style="display:block;font-size:11px;opacity:.65;">Covers, tempered glass, battery &amp; more — pick your model</span>
+            </span>
+        </a>
+
+        <!-- Categories -->
+        <div class="category-bar" id="categoryBar"></div>
+
+        <!-- Featured / Best Sellers -->
+        <h2 id="featuredTitle" class="section-title" style="display:none;">⭐ Best Sellers</h2>
+        <div id="featuredContainer" class="products"></div>
+
+        <!-- Products -->
+        <h2 class="section-title">Our Products</h2>
+
+        <div id="productContainer" class="products">
+        </div>
+
+        <!-- Contact / Visit Us Footer -->
+        <div class="shop-footer">
+            <h2 class="section-title">📍 Visit Us / Connect</h2>
+
+            <div class="shop-photos">
+                <img src="shop-photos/shop-front.jpg" alt="Bestify Mobile Kolavi shop front">
+                <img src="shop-photos/shop-street.jpg" alt="Bestify Mobile Kolavi street view">
+            </div>
+
+            <a class="shop-map-btn" href="https://maps.app.goo.gl/xfazo8HGgp3R59V37" target="_blank" rel="noopener">
+                📍 Get Directions
+            </a>
+
+            <a class="shop-call-btn" href="tel:+919110690727">
+                📞 Call Us: 9110690727
+            </a>
+
+            <div class="shop-footer-links">
+                <a href="about.html">About</a>
+                <a href="contact.html">Contact</a>
+                <a href="terms.html">T&amp;C</a>
+                <a href="return-policy.html">Return Policy</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+
+        <a href="home.html" class="active">
+            <span>🏠</span>
+            <p>Home</p>
+        </a>
+
+        <a href="wishlist.html">
+            <span>😊</span>
+            <p>Liked</p>
+        </a>
+
+        <a href="orders.html">
+            <span>📦</span>
+            <p>Orders</p>
+        </a>
+
+        <a href="profile.html"><span>🏪</span><p>My Account</p></a>
+
+    </nav>
+
+    <script type="module" src="home.js"></script>
+    <script type="module" src="profile-menu.js"></script>
+
+    <script>
+        const menuToggle = document.getElementById("menuToggle");
+        const menuDropdown = document.getElementById("menuDropdown");
+
+        menuToggle.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const isOpen = menuDropdown.classList.toggle("open");
+            menuToggle.setAttribute("aria-expanded", isOpen);
+        });
+
+        document.addEventListener("click", (e) => {
+            if (!menuDropdown.contains(e.target) && !menuToggle.contains(e.target)) {
+                menuDropdown.classList.remove("open");
+                menuToggle.setAttribute("aria-expanded", "false");
+            }
+        });
+    </script>
+
+</body>
+
+</html>

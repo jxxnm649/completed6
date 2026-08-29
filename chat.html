@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Chat with Us — Bestify</title>
+  <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="chat.css">
+</head>
+<body>
+
+  <div class="chat-page">
+
+    <header class="chat-header">
+      <a href="profile.html" class="chat-back" aria-label="Back">←</a>
+      <div>
+        <div class="chat-header-title">Bestify Support</div>
+        <div class="chat-header-sub">We usually reply within a few hours</div>
+      </div>
+    </header>
+
+    <div id="chatMessages" class="chat-messages">
+      <div class="chat-loading">Loading...</div>
+    </div>
+
+    <form id="chatReplyForm" class="chat-input-row">
+      <input type="text" id="chatInput" placeholder="Type a message..." autocomplete="off" required>
+      <button type="submit" id="chatSendBtn">➤</button>
+    </form>
+
+  </div>
+
+  <script type="module" src="chat.js"></script>
+
+</body>
+</html>

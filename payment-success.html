@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Order Placed</title>
+
+<link rel="stylesheet" href="theme.css">
+<link rel="stylesheet" href="payment-status.css">
+
+</head>
+<body>
+
+<div class="status-card success-card">
+  <div class="status-icon">✅</div>
+  <h1>Order Placed!</h1>
+  <p id="statusMsg">Your order has been placed successfully.</p>
+  <p class="order-id" id="orderIdText"></p>
+
+  <button onclick="window.location.href='orders.html'">View My Orders</button>
+  <button class="ghost" onclick="window.location.href='home.html'">Continue Shopping</button>
+</div>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const orderId = params.get("orderId");
+  const method = params.get("method");
+
+  if (orderId) {
+    document.getElementById("orderIdText").textContent =
+      "Order ID: " + orderId;
+  }
+
+  if (method === "cod") {
+    document.getElementById("statusMsg").textContent =
+      "Your order has been placed. Pay cash when it arrives 💵";
+  }
+</script>
+
+</body>
+</html>

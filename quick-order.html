@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find Your Product — Bestify</title>
+
+    <link rel="stylesheet" href="theme.css">
+    <link rel="stylesheet" href="quick-order.css">
+</head>
+
+<body class="bf-has-nav">
+
+<div class="container">
+
+    <div class="brand-header">
+        <a href="home.html" class="qo-back" aria-label="Back">←</a>
+        <span class="brand-text">Find Your Product</span>
+    </div>
+
+    <!-- Step progress -->
+    <div class="qo-steps" id="qoSteps">
+        <span class="qo-step active" data-step="1">Brand</span>
+        <span class="qo-step" data-step="2">Series</span>
+        <span class="qo-step" data-step="3">Model</span>
+        <span class="qo-step" data-step="4">Category</span>
+        <span class="qo-step" data-step="5">Type</span>
+        <span class="qo-step" data-step="6">Variant</span>
+    </div>
+
+    <!-- STEP 1: BRAND -->
+    <section class="qo-panel active" id="qoStep1">
+        <h2 class="qo-title">Which brand is your phone?</h2>
+        <p class="qo-sub">This helps us match the right size/fit.</p>
+        <div class="qo-grid qo-grid-brand" id="qoBrandGrid"></div>
+    </section>
+
+    <!-- STEP 2: SERIES -->
+    <section class="qo-panel" id="qoStep2">
+        <h2 class="qo-title">Which series?</h2>
+        <p class="qo-sub" id="qoSeriesSub"></p>
+        <input type="text" id="qoSeriesInput" class="qo-text-input" placeholder="e.g. Galaxy A, Redmi Note, iPhone...">
+        <div class="qo-grid qo-grid-chip" id="qoSeriesGrid"></div>
+        <button type="button" class="qo-btn qo-btn-primary" id="qoSeriesNext">Next →</button>
+    </section>
+
+    <!-- STEP 3: MODEL -->
+    <section class="qo-panel" id="qoStep3">
+        <h2 class="qo-title">Exact model?</h2>
+        <p class="qo-sub">Type it as printed on the box, e.g. "A54 5G".</p>
+        <input type="text" id="qoModelInput" class="qo-text-input" placeholder="e.g. A54 5G, Note 13 Pro, 15 Pro Max...">
+        <button type="button" class="qo-btn qo-btn-primary" id="qoModelNext">Next →</button>
+    </section>
+
+    <!-- STEP 4: CATEGORY -->
+    <section class="qo-panel" id="qoStep4">
+        <h2 class="qo-title">What do you need?</h2>
+        <p class="qo-sub" id="qoPhoneSummary"></p>
+        <div class="qo-grid qo-grid-category" id="qoCategoryGrid">
+            <div class="qo-loading">Loading categories…</div>
+        </div>
+    </section>
+
+    <!-- STEP 5: TYPE (real products) -->
+    <section class="qo-panel" id="qoStep5">
+        <h2 class="qo-title" id="qoTypeTitle">Choose a type</h2>
+        <p class="qo-sub" id="qoTypeSub"></p>
+        <div class="qo-grid qo-grid-type" id="qoTypeGrid">
+            <div class="qo-loading">Loading products…</div>
+        </div>
+    </section>
+
+    <!-- STEP 6: VARIANT / COLOUR -->
+    <section class="qo-panel" id="qoStep6">
+        <h2 class="qo-title">Pick your favourite look</h2>
+        <p class="qo-sub" id="qoVariantSub"></p>
+        <div class="qo-grid qo-grid-variant" id="qoVariantGrid"></div>
+
+        <div class="qo-summary-card" id="qoSummaryCard"></div>
+
+        <button type="button" class="qo-btn qo-btn-primary qo-btn-block" id="qoDoneBtn">
+            ✅ Add to Cart &amp; Order
+        </button>
+    </section>
+
+    <!-- STEP 7: DONE -->
+    <section class="qo-panel" id="qoStepDone">
+        <div class="qo-done-box">
+            <div class="qo-done-icon">🎉</div>
+            <h2 class="qo-title">Added to your cart!</h2>
+            <p class="qo-sub">You can review it and place the order now.</p>
+            <a href="cart.html" class="qo-btn qo-btn-primary qo-btn-block">Go to Cart</a>
+            <a href="home.html" class="qo-btn qo-btn-ghost qo-btn-block">Keep Browsing</a>
+        </div>
+    </section>
+
+    <!-- Back button (steps 2-6) -->
+    <button type="button" class="qo-back-step" id="qoBackStep" style="display:none;">← Back</button>
+
+</div>
+
+<!-- Bottom Navigation -->
+<nav class="bottom-nav">
+    <a href="home.html"><span>🏠</span><p>Home</p></a>
+    <a href="wishlist.html"><span>😊</span><p>Liked</p></a>
+    <a href="orders.html"><span>📦</span><p>Orders</p></a>
+    <a href="profile.html"><span>🏪</span><p>My Account</p></a>
+</nav>
+
+<script type="module" src="quick-order.js"></script>
+<script type="module" src="logout.js"></script>
+
+</body>
+</html>

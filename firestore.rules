@@ -1,0 +1,416 @@
+rules_version = '2';
+
+/* ============================================================
+   Bestify — Firestore Security Rules
+
+   HOW TO DEPLOY:
+   1. Firebase Console → Firestore Database → Rules tab
+      → paste this file → Publish.
+      OR, with Firebase CLI: save this as `firestore.rules` in
+      your project root and run `firebase deploy --only firestore:rules`
+
+   MODEL:
+   - Every regular user can read/write their OWN data only
+     (their own user doc, their own orders, wallet, cashback,
+     referrals, repairs, chat thread).
+   - Every write to a collection an admin manages (products,
+     vendors, settings, notifications, audit logs, refund/
+     payment/order status changes) requires `isAdmin: true`
+     on the caller's /users/{uid} doc — matching the check
+     already used throughout admin/*.js.
+   - Audit logs are admin-write, and NEVER editable or
+     deletable by anyone (append-only trail).
+   - Products are publicly readable (needed for the storefront
+     to show a catalog to logged-out visitors) but only
+     admin-writable.
+   ============================================================ */
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /* ---------- HELPERS ---------- */
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isSelf(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Reads the caller's own /users/{uid} doc to check the isAdmin flag.
+    // This mirrors the exact check used in admin/*.js on the client.
+    function isAdmin() {
+      return isSignedIn() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+
+    function isOwner(field) {
+      return isSignedIn() && request.auth.uid == resource.data[field];
+    }
+
+    function willBeOwner(field) {
+      return isSignedIn() && request.auth.uid == request.resource.data[field];
+    }
+
+    // Active, approved vendor/supplier check — reads the caller's own
+    // /vendors/{uid} doc (self-signup vendors use their own uid as the
+    // doc id — see vendor-apply.js).
+    function isActiveVendor() {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/vendors/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/vendors/$(request.auth.uid)).data.status == "Active";
+    }
+
+    // For a vendor's own products: request.resource/resource.data.vendorId
+    // must be their own uid.
+    function isOwnVendorProduct() {
+      return isSignedIn() && resource.data.vendorId == request.auth.uid;
+    }
+
+
+    /* ---------- USERS ---------- */
+    // Anyone signed in can read profiles (needed for referrals/chats/etc
+    // to show names). Users can only edit their own doc, and can never
+    // grant themselves admin rights. Admins can edit any user doc.
+
+    match /users/{userId} {
+
+      allow read: if isSignedIn();
+
+      allow create: if isSelf(userId) &&
+        request.resource.data.isAdmin != true;
+
+      allow update: if (isSelf(userId) &&
+          request.resource.data.isAdmin == resource.data.isAdmin) ||
+        isAdmin();
+
+      allow delete: if isAdmin();
+
+      // Per-user subcollections: only the owner (or admin) may touch
+      // their own cart items or saved addresses. NOTE: these were
+      // previously unmatched and silently caught by the default-deny
+      // rule at the bottom of this file — cart/addresses reads and
+      // writes would have failed outright without this block.
+      match /cart/{itemId} {
+        allow read, write: if isSelf(userId) || isAdmin();
+      }
+
+      match /addresses/{addressId} {
+        allow read, write: if isSelf(userId) || isAdmin();
+      }
+
+      match /sessions/{sessionId} {
+        allow read, write: if isSelf(userId) || isAdmin();
+      }
+
+    }
+
+
+    /* ---------- PRODUCTS ---------- */
+    // Public catalog: anyone can read (including logged-out visitors).
+    // Admins can create/edit/delete any listing. An Active vendor can
+    // create/edit/delete only their OWN listings (vendorId == their uid).
+
+    match /products/{productId} {
+
+      allow read: if true;
+
+      allow create: if isAdmin() ||
+        (isActiveVendor() && willBeOwner('vendorId'));
+
+      allow update, delete: if isAdmin() ||
+        (isActiveVendor() && isOwnVendorProduct());
+
+    }
+
+
+    /* ---------- VENDORS ---------- */
+    // A signed-in user can apply to become a vendor by creating their
+    // OWN doc (id == their uid) with status forced to "Pending" — they
+    // can never self-approve. Admins fully manage every vendor doc.
+    // An approved vendor can edit their own shop-profile fields, but
+    // never their own status or commissionRate (admin-only fields).
+
+    match /vendors/{vendorId} {
+
+      allow read: if isSignedIn();
+
+      allow create: if isAdmin() ||
+        (isSelf(vendorId) &&
+          request.resource.data.userId == request.auth.uid &&
+          request.resource.data.status == "Pending");
+
+      allow update: if isAdmin() ||
+        (isSelf(vendorId) &&
+          request.resource.data.status == resource.data.status &&
+          request.resource.data.commissionRate == resource.data.commissionRate);
+
+      allow delete: if isAdmin();
+
+    }
+
+
+    /* ---------- ORDERS ---------- */
+    // A user can create their own order and read their own orders.
+    // A vendor can also read any order that includes one of their
+    // products (order.vendorIds array-contains their uid — written by
+    // checkout.js), and may move that order forward through a couple
+    // of fulfilment steps (Pending/Confirmed -> Packed -> Shipped)
+    // WITHOUT touching anything else on the order doc.
+    // Full status control (Delivered, Cancelled, tracking, etc.)
+    // remains admin-only. Nobody can delete an order (keep the record).
+
+    function isOrderVendor() {
+      return isSignedIn() &&
+        'vendorIds' in resource.data &&
+        request.auth.uid in resource.data.vendorIds;
+    }
+
+    function isVendorAllowedOrderStatusChange() {
+      return isOrderVendor() &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']) &&
+        (
+          (resource.data.status in ['Pending', 'Confirmed'] && request.resource.data.status == 'Packed') ||
+          (resource.data.status == 'Packed' && request.resource.data.status == 'Shipped')
+        );
+    }
+
+    match /orders/{orderId} {
+
+      allow read: if isOwner('userId') || isAdmin() || isOrderVendor();
+
+      allow create: if willBeOwner('userId');
+
+      allow update: if isAdmin() || isVendorAllowedOrderStatusChange();
+
+      allow delete: if false;
+
+    }
+
+
+    /* ---------- PAYMENTS ---------- */
+    // Payment records are written by your checkout/payment flow and
+    // reconciled by admins. Not directly writable by arbitrary clients
+    // beyond creating their own pending record.
+
+    match /payments/{paymentId} {
+
+      allow read: if isOwner('userId') || isAdmin();
+      allow create: if willBeOwner('userId');
+      allow update, delete: if isAdmin();
+
+    }
+
+
+    /* ---------- REFUNDS ---------- */
+    // Admin-initiated only (see admin/payments.js refund flow).
+
+    match /refunds/{refundId} {
+
+      allow read: if isOwner('userId') || isAdmin();
+      allow write: if isAdmin();
+
+    }
+
+
+    /* ---------- WALLETS / WALLET TRANSACTIONS ---------- */
+    // Users can read their own wallet activity. Only admins can
+    // create/adjust transactions (matches admin/wallets.js).
+
+    match /walletTransactions/{txId} {
+
+      allow read: if isOwner('userId') || isAdmin();
+      allow write: if isAdmin();
+
+    }
+
+    match /wallets/{walletId} {
+
+      allow read: if isOwner('userId') || isSelf(walletId) || isAdmin();
+      allow write: if isAdmin();
+
+    }
+
+
+    /* ---------- VENDOR WALLET TRANSACTIONS ---------- */
+    // Admin-managed ledger for a vendor's withdrawable wallet balance
+    // (separate from the per-order "commissions" earnings history).
+
+    match /vendorWalletTransactions/{txId} {
+
+      allow read: if isAdmin() || (isSignedIn() && resource.data.vendorId == request.auth.uid);
+      allow write: if isAdmin();
+
+    }
+
+
+    /* ---------- COUNTERS (sequential order numbers, product codes) ---------- */
+    // Small shared counter docs (e.g. counters/orders, counters/products).
+    // Anyone signed in can read/create/increment by exactly 1 at a time —
+    // low-risk, display-only sequence numbers, not money or security data.
+
+    match /counters/{counterId} {
+
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() &&
+        request.resource.data.count == resource.data.count + 1;
+
+    }
+
+
+    /* ---------- WITHDRAWAL REQUESTS ---------- */
+    // Money-moving writes (create a request + deduct/refund the wallet)
+    // only ever happen through the requestWithdrawal / processWithdrawal
+    // Cloud Functions (Admin SDK, bypasses these rules by design) so a
+    // request can never be forged for more than the caller actually
+    // holds. From the client, this collection is read-only.
+
+    match /withdrawalRequests/{requestId} {
+
+      allow read: if isAdmin() || (isSignedIn() && resource.data.requesterId == request.auth.uid);
+      allow write: if false;
+
+    }
+
+
+    /* ---------- COMMISSIONS ---------- */
+    // Admin-managed only.
+
+    match /commissions/{commissionId} {
+
+      allow read: if isAdmin() || (isSignedIn() && resource.data.vendorId == request.auth.uid);
+      allow write: if isAdmin();
+
+    }
+
+
+    /* ---------- CASHBACK ---------- */
+    // Users can see their own cashback entries; only admins credit them.
+
+    match /cashback/{entryId} {
+
+      allow read: if isOwner('userId') || isAdmin();
+      allow write: if isAdmin();
+
+    }
+
+
+    /* ---------- REFERRALS ---------- */
+    // A user can read referral entries where they are the referrer.
+    // Only admins create/update referral records (matches
+    // admin/referrals.js — referrals are logged by admins).
+
+    match /referrals/{referralId} {
+
+      allow read: if isOwner('referrerId') || isAdmin();
+      allow write: if isAdmin();
+
+    }
+
+
+    /* ---------- REPAIRS ---------- */
+    // Logged by admin staff at drop-off; customers don't self-serve
+    // this yet, so keep it admin-only end to end.
+
+    match /repairs/{repairId} {
+
+      allow read, write: if isAdmin();
+
+    }
+
+
+    /* ---------- CHATS ---------- */
+    // chats/{userId} is the thread doc (doc id == the customer's uid),
+    // with a messages subcollection. The customer can read/write their
+    // own thread; admins can read/write any thread.
+
+    match /chats/{userId} {
+
+      allow read, write: if isSelf(userId) || isAdmin();
+
+      match /messages/{messageId} {
+        allow read, write: if isSelf(userId) || isAdmin();
+      }
+
+    }
+
+
+    /* ---------- NOTIFICATIONS ---------- */
+    // Admin composes/sends; a user can read notifications addressed
+    // to them or broadcast to "all".
+
+    match /notifications/{notificationId} {
+
+      allow read: if isAdmin() ||
+        (isSignedIn() && (
+          resource.data.target == "all" ||
+          (resource.data.target == "user" && resource.data.userId == request.auth.uid)
+        ));
+
+      allow write: if isAdmin();
+
+    }
+
+
+    /* ---------- AUDIT LOG ---------- */
+    // Append-only. Admins can write new entries (via logAdminAction);
+    // nobody can edit or delete existing entries, ever.
+
+    match /auditLogs/{logId} {
+
+      allow read: if isAdmin();
+      allow create: if isAdmin();
+      allow update, delete: if false;
+
+    }
+
+
+    /* ---------- SETTINGS ---------- */
+    // Store config. Publicly readable (storefront needs shipping fee,
+    // tax rate, maintenance mode, etc.) but only admins can change it.
+
+    match /settings/{docId} {
+
+      allow read: if true;
+      allow write: if isAdmin();
+
+    }
+
+
+    /* ---------- ADMIN ALERTS (activity feed) ---------- */
+    // Lightweight event pings (signup, like, order placed, order
+    // cancelled) written by ordinary user actions so the admin panel
+    // can show a live activity feed. Anyone signed in can create one
+    // for themselves; only admins can read/manage the feed.
+
+    match /adminAlerts/{alertId} {
+
+      allow create: if isSignedIn();
+      allow read, update, delete: if isAdmin();
+
+    }
+
+
+    /* ---------- FEEDBACK ---------- */
+    // Any signed-in user can leave feedback about their own account;
+    // only admins can read/manage the submissions.
+
+    match /feedback/{feedbackId} {
+
+      allow create: if willBeOwner('userId');
+      allow read, update, delete: if isAdmin();
+
+    }
+
+
+    /* ---------- DEFAULT DENY ---------- */
+    // Anything not explicitly matched above is blocked.
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+  }
+}
