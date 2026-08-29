@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Admin User Control — Bestify</title>
+
+<style>
+*{
+    box-sizing:border-box;
+}
+
+html,body{
+    margin:0;
+    padding:0;
+    font-family:Arial, sans-serif;
+    background:#f3f5f9;
+    color:#172033;
+}
+
+body{
+    overflow-x:hidden;
+}
+
+/* HEADER */
+.header{
+    background:#111827;
+    color:#fff;
+    padding:16px;
+    font-size:20px;
+    font-weight:bold;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+}
+
+.header a{
+    color:#fff;
+    text-decoration:none;
+    font-size:13px;
+    background:#1f2937;
+    padding:8px 12px;
+    border-radius:8px;
+}
+
+/* MAIN */
+.container{
+    width:100%;
+    max-width:1200px;
+    margin:auto;
+    padding:12px;
+}
+
+/* LAYOUT */
+.main{
+    display:grid;
+    grid-template-columns:280px 1fr;
+    gap:12px;
+}
+
+/* CARD */
+.card{
+    background:#fff;
+    border-radius:15px;
+    padding:15px;
+    box-shadow:0 2px 12px rgba(0,0,0,.06);
+    min-width:0;
+}
+
+/* SEARCH */
+.search{
+    width:100%;
+    height:45px;
+    padding:0 14px;
+    border:1px solid #ddd;
+    border-radius:10px;
+    font-size:15px;
+    outline:none;
+}
+
+.search:focus{
+    border-color:#2563eb;
+}
+
+/* USER LIST */
+.user-list{
+    max-height:calc(100vh - 100px);
+    overflow-y:auto;
+}
+
+.user{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:11px;
+    margin-top:9px;
+    border:1px solid #eee;
+    border-radius:10px;
+    cursor:pointer;
+}
+
+.user:hover,
+.user.active{
+    background:#eff6ff;
+    border-color:#2563eb;
+}
+
+.avatar{
+    width:42px;
+    height:42px;
+    min-width:42px;
+    border-radius:50%;
+    background:#2563eb;
+    color:white;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-weight:bold;
+}
+
+.user-info{
+    min-width:0;
+}
+
+.user-name{
+    font-weight:bold;
+    font-size:14px;
+}
+
+.small{
+    color:#6b7280;
+    font-size:12px;
+    margin-top:3px;
+}
+
+/* PROFILE */
+.profile{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:15px;
+}
+
+.big-avatar{
+    width:65px;
+    height:65px;
+    min-width:65px;
+    border-radius:50%;
+    background:#2563eb;
+    color:white;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:22px;
+    font-weight:bold;
+}
+
+.profile h2{
+    margin:0 0 5px;
+    font-size:21px;
+}
+
+.status{
+    display:inline-block;
+    margin-top:5px;
+    padding:5px 9px;
+    border-radius:20px;
+    background:#dcfce7;
+    color:#15803d;
+    font-size:11px;
+    font-weight:bold;
+}
+
+.status.blocked{
+    background:#fee2e2;
+    color:#dc2626;
+}
+
+/* STATS */
+.stats{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:8px;
+    margin-bottom:15px;
+}
+
+.stat{
+    background:#f8fafc;
+    padding:12px;
+    border-radius:10px;
+    font-size:12px;
+}
+
+.stat b{
+    display:block;
+    font-size:19px;
+    margin-top:5px;
+}
+
+/* TABS */
+.tabs{
+    display:flex;
+    gap:7px;
+    overflow-x:auto;
+    padding-bottom:7px;
+    margin-bottom:15px;
+}
+
+.tabs::-webkit-scrollbar{
+    height:4px;
+}
+
+.tab{
+    flex:0 0 auto;
+    border:0;
+    background:#eef2f7;
+    color:#172033;
+    padding:14px 20px;
+    border-radius:10px;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+    white-space:nowrap;
+}
+
+.tab.active{
+    background:#2563eb;
+    color:#fff;
+}
+
+/* SECTIONS */
+.section{
+    display:none;
+}
+
+.section.active{
+    display:block;
+}
+
+.section h3{
+    margin:0 0 13px;
+    font-size:17px;
+}
+
+/* INFO */
+.info-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+}
+
+.info{
+    background:#f8fafc;
+    padding:12px;
+    border-radius:9px;
+    word-break:break-word;
+}
+
+.info label{
+    display:block;
+    color:#6b7280;
+    font-size:11px;
+    margin-bottom:5px;
+}
+
+/* BUTTONS */
+.btn{
+    border:0;
+    background:#2563eb;
+    color:#fff;
+    padding:9px 13px;
+    border-radius:7px;
+    cursor:pointer;
+    margin:3px;
+    font-size:12px;
+}
+
+.btn.green{
+    background:#16a34a;
+}
+
+.btn.red{
+    background:#dc2626;
+}
+
+.btn.gray{
+    background:#6b7280;
+}
+
+.btn:disabled{
+    opacity:.6;
+    cursor:default;
+}
+
+/* TABLE */
+.table-box{
+    width:100%;
+    overflow-x:auto;
+}
+
+table{
+    width:100%;
+    min-width:500px;
+    border-collapse:collapse;
+}
+
+th,td{
+    padding:11px;
+    border-bottom:1px solid #eee;
+    text-align:left;
+    font-size:12px;
+    white-space:nowrap;
+}
+
+th{
+    background:#f8fafc;
+}
+
+/* MESSAGE */
+.message{
+    padding:12px;
+    background:#f8fafc;
+    border-radius:9px;
+    margin-bottom:10px;
+}
+
+.message.admin{
+    background:#eff6ff;
+}
+
+.message-row{
+    display:flex;
+    gap:7px;
+}
+
+.message-row input{
+    flex:1;
+    min-width:0;
+    padding:10px;
+    border:1px solid #ddd;
+    border-radius:7px;
+}
+
+/* TEXTAREA */
+textarea{
+    width:100%;
+    height:100px;
+    padding:10px;
+    border:1px solid #ddd;
+    border-radius:8px;
+    resize:vertical;
+    font-family:inherit;
+}
+
+.muted{
+    color:#6b7280;
+    font-size:13px;
+    padding:14px 0;
+}
+
+/* MOBILE */
+@media(max-width:800px){
+
+    .header{
+        font-size:17px;
+        padding:14px;
+    }
+
+    .container{
+        padding:8px;
+    }
+
+    .main{
+        display:block;
+    }
+
+    .user-list{
+        max-height:none;
+        margin-bottom:10px;
+    }
+
+    #userList{
+        display:flex;
+        gap:8px;
+        overflow-x:auto;
+    }
+
+    .user{
+        flex:0 0 190px;
+        margin-top:10px;
+    }
+
+    .stats{
+        grid-template-columns:1fr 1fr;
+    }
+
+    .info-grid{
+        grid-template-columns:1fr;
+    }
+
+    .card{
+        padding:11px;
+    }
+
+    .profile h2{
+        font-size:18px;
+    }
+}
+
+@media(max-width:400px){
+
+    .user{
+        flex-basis:175px;
+    }
+
+    .stat b{
+        font-size:17px;
+    }
+
+    .tab{
+        padding:9px 11px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+<span>🛠 Admin Panel → User Control</span>
+<a href="users.html">← Back to Users</a>
+</div>
+
+<div class="container">
+
+<div class="main">
+
+<!-- ================= USER LIST ================= -->
+
+<div class="card user-list">
+
+<h2 style="margin:0 0 12px;">
+👥 Users
+</h2>
+
+<input
+    type="text"
+    id="search"
+    class="search"
+    placeholder="🔍 Search user..."
+    autocomplete="off"
+    autocorrect="off"
+    autocapitalize="off"
+    spellcheck="false"
+    name="bf-admin-user-search-no-autofill"
+>
+
+<div id="userList">
+    <div class="small" style="padding:15px;">Loading users…</div>
+</div>
+
+</div>
+
+
+<!-- ================= USER DETAILS ================= -->
+
+<div class="card">
+
+<div id="userDetails">
+    <div class="small" style="padding:15px;">Select a user to view details.</div>
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+
+<script type="module">
+
+import { auth, db } from "../firebase.js";
+
+import {
+  onAuthStateChanged,
+  sendPasswordResetEmail
+} from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
+
+import {
+  collection,
+  getDocs,
+  doc,
+  getDoc,
+  updateDoc,
+  query,
+  where,
+  orderBy,
+  limit,
+  addDoc,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+
+import { logAdminAction } from "./audit.js";
+
+
+/* =====================================================
+   STATE
+===================================================== */
+
+var users = [];
+var selectedUser = null;
+
+// Per-user cache so switching tabs back and forth doesn't
+// keep re-hitting Firestore.
+var tabCache = {};
+
+function cacheFor(uid){
+    if(!tabCache[uid]) tabCache[uid] = {};
+    return tabCache[uid];
+}
+
+
+/* =====================================================
+   HELPERS
+===================================================== */
+
+function getInitials(name){
+    var words = (name || "").trim().split(" ");
+    var result = "";
+    for(var i=0;i<words.length;i++){
+        if(words[i]) result += words[i].charAt(0);
+    }
+    return (result.substring(0,2) || "?").toUpperCase();
+}
+
+function escapeHtml(str){
+    if(typeof str !== "string") return str;
+    return str.replace(/[&<>"']/g, function(m){
+        return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m];
+    });
+}
+
+function formatDate(ts){
+    try{
+        var d = ts && ts.toDate ? ts.toDate() : new Date(ts);
+        if(isNaN(d.getTime())) return "—";
+        return d.toLocaleString("en-IN");
+    }catch(e){
+        return "—";
+    }
+}
+
+function userName(u){
+    return u.name || u.fullName || u.displayName || "Unnamed User";
+}
+
+function userPhone(u){
+    return u.phone || u.mobile || "No phone";
+}
+
+function walletBalance(u){
+    return Number(u.walletBalance ?? u.wallet ?? 0);
+}
+
+function isBlocked(u){
+    return u.blocked === true;
+}
+
+
+/* =====================================================
+   LOAD USERS (Firestore)
+===================================================== */
+
+async function loadUsers(){
+
+    try{
+
+        var snap = await getDocs(collection(db, "users"));
+
+        users = snap.docs.map(function(d){
+            return { id: d.id, ...d.data() };
+        });
+
+        showUsers(users);
+
+        if(users.length){
+            selectedUser = users[0];
+            showUsers(users);
+            showDetails();
+        }
+
+    }catch(error){
+
+        console.error("Users loading error:", error);
+
+        document.getElementById("userList").innerHTML =
+            '<div class="small" style="padding:15px;">❌ Unable to load users.</div>';
+
+    }
+
+}
+
+
+/* =====================================================
+   SHOW USERS
+===================================================== */
+
+function showUsers(list){
+
+    var box = document.getElementById("userList");
+
+    box.innerHTML = "";
+
+    if(list.length === 0){
+        box.innerHTML = '<div class="small" style="padding:15px;">No user found</div>';
+        return;
+    }
+
+    for(var i=0;i<list.length;i++){
+
+        var u = list[i];
+
+        var div = document.createElement("div");
+
+        div.className = "user";
+
+        if(selectedUser && u.id === selectedUser.id){
+            div.className += " active";
+        }
+
+        div.innerHTML =
+        '<div class="avatar">'+getInitials(userName(u))+'</div>' +
+        '<div class="user-info">' +
+        '<div class="user-name">'+escapeHtml(userName(u))+'</div>' +
+        '<div class="small">'+escapeHtml(userPhone(u))+'</div>' +
+        '<div class="small">UID: '+escapeHtml(u.id.slice(0,8))+'…</div>' +
+        '</div>';
+
+        div.onclick = (function(user){
+            return function(){
+                selectedUser = user;
+                showUsers(users);
+                showDetails();
+            };
+        })(u);
+
+        box.appendChild(div);
+    }
+}
+
+
+/* =====================================================
+   SEARCH
+===================================================== */
+
+document.getElementById("search").addEventListener("input", function(){
+
+    var value = this.value.toLowerCase().trim();
+
+    if (value === "") {
+        showUsers(users);
+        return;
+    }
+
+    var filtered = users.filter(function(u){
+        return userName(u).toLowerCase().indexOf(value) !== -1 ||
+               userPhone(u).toLowerCase().indexOf(value) !== -1 ||
+               u.id.toLowerCase().indexOf(value) !== -1;
+    });
+
+    // Exactly one match — jump straight into that customer's full
+    // profile instead of showing a list (nothing else to pick from).
+    if (filtered.length === 1) {
+
+        selectedUser = filtered[0];
+        showUsers(filtered);
+        showDetails();
+
+        var detailsCard = document.querySelector(".main > .card:last-child");
+        if (detailsCard) detailsCard.scrollIntoView({ behavior: "smooth", block: "start" });
+
+        return;
+
+    }
+
+    showUsers(filtered);
+
+});
+
+
+/* =====================================================
+   INFO BOX
+===================================================== */
+
+function info(label, value){
+    return '<div class="info"><label>'+escapeHtml(label)+'</label>'+escapeHtml(value)+'</div>';
+}
+
+// Same as info(), but with its own ✏ button that edits ONLY this
+// one field (fieldKey is used by editField() to know what to save).
+function editableInfo(label, value, fieldKey){
+    return '' +
+    '<div class="info" style="position:relative;">' +
+        '<label>'+escapeHtml(label)+'</label>' +
+        '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">' +
+            '<span class="editable-value" style="word-break:break-word;">'+escapeHtml(value)+'</span>' +
+            '<button type="button" class="field-edit-btn" data-field="'+escapeHtml(fieldKey)+'" data-label="'+escapeHtml(label)+'" ' +
+                'style="border:0;background:none;cursor:pointer;font-size:15px;padding:2px 4px;flex-shrink:0;" ' +
+                'aria-label="Edit '+escapeHtml(label)+'">✏</button>' +
+        '</div>' +
+    '</div>';
+}
+
+/* =====================================================
+   USER DETAILS (Profile tab renders instantly,
+   other tabs fetch their Firestore data on first click)
+===================================================== */
+
+function showDetails(){
+
+    var u = selectedUser;
+    var blocked = isBlocked(u);
+    var statusClass = blocked ? "status blocked" : "status";
+    var statusText = blocked ? "Blocked" : "Active";
+
+    document.getElementById("userDetails").innerHTML =
+
+    '<div class="profile">' +
+        '<div class="big-avatar">'+getInitials(userName(u))+'</div>' +
+        '<div>' +
+            '<h2>'+escapeHtml(userName(u))+'</h2>' +
+            '<div>'+escapeHtml(userPhone(u))+'</div>' +
+            '<span class="'+statusClass+'">'+statusText+'</span>' +
+        '</div>' +
+    '</div>' +
+
+    '<div class="stats" id="statsBox">' +
+        '<div class="stat">💰 Wallet<b>₹'+walletBalance(u).toLocaleString("en-IN")+'</b></div>' +
+        '<div class="stat">📦 Orders<b id="statOrders">…</b></div>' +
+        '<div class="stat">❤️ Liked<b id="statLiked">…</b></div>' +
+        '<div class="stat">👥 Referrals<b id="statReferrals">…</b></div>' +
+    '</div>' +
+
+    '<div class="tabs">' +
+        '<button class="tab active" data-tab="profile">👤 Profile</button>' +
+        '<button class="tab" data-tab="wallet">💰 Wallet</button>' +
+        '<button class="tab" data-tab="orders">📦 Orders</button>' +
+        '<button class="tab" data-tab="liked">❤️ Liked</button>' +
+        '<button class="tab" data-tab="messages">💬 Messages</button>' +
+        '<button class="tab" data-tab="bank">🏦 Bank / UPI</button>' +
+        '<button class="tab" data-tab="referral">👥 Referral</button>' +
+        '<button class="tab" data-tab="notes">📝 Admin Notes</button>' +
+    '</div>' +
+
+    '<div id="profile" class="section active">' +
+        '<h3>👤 Profile Information</h3>' +
+        '<div class="info-grid" id="profileInfoGrid">' +
+            info("User ID", u.id) +
+            editableInfo("Full Name", userName(u), "name") +
+            editableInfo("Mobile", userPhone(u), "phone") +
+            info("Email", u.email || "Not available") +
+            editableInfo("Address", u.address || "Not available", "address") +
+            info("Account Status", statusText) +
+        '</div>' +
+        '<br>' +
+        '<button class="btn red" id="blockBtn">'+(blocked ? "Unblock User" : "Block User")+'</button>' +
+        '<button class="btn gray" id="resetPassBtn">🔑 Reset Password</button>' +
+    '</div>' +
+
+    '<div id="wallet" class="section">' +
+        '<h3>💰 Wallet Details</h3>' +
+        '<div class="info"><label>Current Balance</label><h2>₹'+walletBalance(u).toLocaleString("en-IN")+'</h2></div>' +
+        '<br>' +
+        '<button class="btn green" id="addMoneyBtn">+ Add Money</button>' +
+        '<button class="btn" id="deductMoneyBtn">− Deduct Money</button>' +
+        '<br><br>' +
+        '<div id="walletTxnBox" class="table-box"><div class="muted">Loading transactions…</div></div>' +
+    '</div>' +
+
+    '<div id="orders" class="section">' +
+        '<h3>📦 Orders</h3>' +
+        '<div id="ordersBox" class="table-box"><div class="muted">Loading orders…</div></div>' +
+    '</div>' +
+
+    '<div id="liked" class="section">' +
+        '<h3>❤️ Liked Products</h3>' +
+        '<div id="likedBox" class="table-box"><div class="muted">Loading liked products…</div></div>' +
+    '</div>' +
+
+    '<div id="messages" class="section">' +
+        '<h3>💬 Messages</h3>' +
+        '<div id="messagesBox"><div class="muted">Loading conversation…</div></div>' +
+        '<div class="message-row">' +
+            '<input id="messageInput" placeholder="Type message...">' +
+            '<button class="btn" id="sendBtn">Send</button>' +
+        '</div>' +
+    '</div>' +
+
+    '<div id="bank" class="section">' +
+        '<h3>🏦 Bank Details / UPI</h3>' +
+        '<div class="info-grid" id="bankInfoGrid">' +
+            editableInfo("UPI ID", u.upi || "Not available", "upi") +
+            editableInfo("Bank", u.bankName || u.bank || "Not available", "bankName") +
+            editableInfo("Account Number", u.accountNumber || u.account || "Not available", "accountNumber") +
+            editableInfo("IFSC", u.ifsc || "Not available", "ifsc") +
+        '</div>' +
+    '</div>' +
+
+    '<div id="referral" class="section">' +
+        '<h3>👥 Referral System</h3>' +
+        '<div id="referralBox"><div class="muted">Loading referrals…</div></div>' +
+    '</div>' +
+
+    '<div id="notes" class="section">' +
+        '<h3>📝 Admin Notes</h3>' +
+        '<div class="info">' +
+            '<label>Private note (visible to admins only)</label>' +
+            '<textarea id="adminNoteText">'+escapeHtml(u.adminNotes || "")+'</textarea>' +
+            '<br><br>' +
+            '<button class="btn" id="saveNoteBtn">💾 Save Note</button>' +
+        '</div>' +
+    '</div>';
+
+
+    /* TAB CLICK (lazy-loads each tab's Firestore data once) */
+
+    var tabs = document.querySelectorAll(".tab");
+    var loadedTabs = {};
+
+    for(var i=0;i<tabs.length;i++){
+
+        tabs[i].onclick = function(){
+
+            var tabName = this.getAttribute("data-tab");
+
+            var sections = document.querySelectorAll(".section");
+            for(var j=0;j<sections.length;j++) sections[j].classList.remove("active");
+
+            var selected = document.getElementById(tabName);
+            if(selected) selected.classList.add("active");
+
+            var tabBtns = document.querySelectorAll(".tab");
+            for(var k=0;k<tabBtns.length;k++) tabBtns[k].classList.remove("active");
+            this.classList.add("active");
+
+            if(!loadedTabs[tabName]){
+                loadedTabs[tabName] = true;
+                if(tabName === "wallet") loadWalletTab(u.id);
+                if(tabName === "orders") loadOrdersTab(u.id);
+                if(tabName === "liked") loadLikedTab(u.id);
+                if(tabName === "messages") loadMessagesTab(u.id);
+                if(tabName === "referral") loadReferralTab(u.id);
+            }
+
+        };
+
+    }
+
+    // Kick off the stat-card counts right away (cheap, cached).
+    loadOrdersTab(u.id, true);
+    loadLikedTab(u.id, true);
+    loadReferralTab(u.id, true);
+
+
+    /* PER-FIELD EDIT (Profile + Bank/UPI) */
+    // Each ✏ button edits exactly one field, via a single prompt,
+    // and only that field is saved and re-rendered.
+
+    var FIELD_MAP = {
+        name:          { docField: "name",          isProfileName: true },
+        phone:         { docField: "phone" },
+        address:       { docField: "address" },
+        upi:           { docField: "upi" },
+        bankName:      { docField: "bankName" },
+        accountNumber: { docField: "accountNumber" },
+        ifsc:          { docField: "ifsc" }
+    };
+
+    document.querySelectorAll(".field-edit-btn").forEach(function(btn){
+
+        btn.onclick = async function(){
+
+            var fieldKey = this.dataset.field;
+            var label = this.dataset.label;
+            var mapping = FIELD_MAP[fieldKey];
+            if(!mapping) return;
+
+            var currentValue = fieldKey === "name" ? userName(u) :
+                                fieldKey === "phone" ? userPhone(u) :
+                                fieldKey === "bankName" ? (u.bankName || u.bank || "") :
+                                fieldKey === "accountNumber" ? (u.accountNumber || u.account || "") :
+                                (u[fieldKey] || "");
+            var newValue = prompt(label + ":", currentValue);
+
+            if(newValue === null) return; // cancelled
+            newValue = newValue.trim();
+
+            try{
+
+                var update = {};
+                update[mapping.docField] = newValue;
+
+                await updateDoc(doc(db, "users", u.id), update);
+
+                u[mapping.docField] = newValue;
+
+                await logAdminAction("Updated " + label, "Users", { userId: u.id, field: mapping.docField });
+
+                // Update just this field's display, and the sidebar
+                // card too if the name/phone changed.
+                var valueEl = this.closest(".info").querySelector(".editable-value");
+                if(valueEl) valueEl.textContent = newValue || "Not available";
+
+                if(fieldKey === "name" || fieldKey === "phone"){
+                    showUsers(users);
+                }
+
+            }catch(error){
+                alert(error.message || "Failed to update " + label + ".");
+            }
+
+        };
+
+    });
+
+    document.getElementById("blockBtn").onclick = async function(){
+
+        var next = !isBlocked(u);
+
+        try{
+            await updateDoc(doc(db, "users", u.id), { blocked: next });
+            u.blocked = next;
+
+            await logAdminAction(next ? "Blocked user" : "Unblocked user", "Users", { userId: u.id });
+
+            showUsers(users);
+            showDetails();
+
+        }catch(error){
+            alert(error.message || "Failed to update status.");
+        }
+
+    };
+
+    document.getElementById("resetPassBtn").onclick = async function(){
+
+        if(!u.email){
+            alert("This user has no email on file.");
+            return;
+        }
+
+        try{
+            await sendPasswordResetEmail(auth, u.email);
+            alert("Password reset email sent to " + u.email);
+        }catch(error){
+            alert(error.message || "Failed to send reset email.");
+        }
+
+    };
+
+
+    /* WALLET ACTIONS */
+
+    document.getElementById("addMoneyBtn").onclick = function(){ adjustWallet(u, "credit"); };
+    document.getElementById("deductMoneyBtn").onclick = function(){ adjustWallet(u, "debit"); };
+
+
+    /* NOTES */
+
+    document.getElementById("saveNoteBtn").onclick = async function(){
+
+        var text = document.getElementById("adminNoteText").value;
+
+        try{
+            await updateDoc(doc(db, "users", u.id), { adminNotes: text });
+            u.adminNotes = text;
+            alert("Note saved");
+        }catch(error){
+            alert(error.message || "Failed to save note.");
+        }
+
+    };
+
+
+    /* SEND MESSAGE */
+
+    document.getElementById("sendBtn").onclick = async function(){
+
+        var input = document.getElementById("messageInput");
+        var text = input.value.trim();
+
+        if(text === ""){
+            alert("Message type madi");
+            return;
+        }
+
+        try{
+
+            await addDoc(collection(db, "chats", u.id, "messages"), {
+                sender: "admin",
+                text: text,
+                createdAt: serverTimestamp()
+            });
+
+            await updateDoc(doc(db, "chats", u.id), {
+                lastMessage: text,
+                lastMessageAt: serverTimestamp()
+            }).catch(async function(){
+                // Chat thread doesn't exist yet for this user — nothing to update.
+            });
+
+            input.value = "";
+
+            delete cacheFor(u.id).messages;
+            loadMessagesTab(u.id);
+
+        }catch(error){
+            alert(error.message || "Failed to send message.");
+        }
+
+    };
+
+}
+
+
+/* =====================================================
+   WALLET ADJUST (mirrors admin/wallets.js behaviour)
+===================================================== */
+
+async function adjustWallet(u, type){
+
+    var amountStr = prompt(type === "credit" ? "Amount to add (₹):" : "Amount to deduct (₹):", "");
+    if(amountStr === null) return;
+
+    var amount = Number(amountStr);
+    if(!amount || amount <= 0){
+        alert("Enter a valid amount");
+        return;
+    }
+
+    var reason = prompt("Reason (optional):", "") || "";
+
+    var current = walletBalance(u);
+
+    if(type === "debit" && amount > current){
+        alert("Debit amount exceeds current balance");
+        return;
+    }
+
+    var newBalance = type === "credit" ? current + amount : current - amount;
+
+    try{
+
+        await updateDoc(doc(db, "users", u.id), { walletBalance: newBalance });
+
+        await addDoc(collection(db, "walletTransactions"), {
+            userId: u.id,
+            customerName: userName(u),
+            type: type,
+            amount: amount,
+            reason: reason,
+            balanceAfter: newBalance,
+            createdAt: serverTimestamp()
+        });
+
+        await logAdminAction(
+            type === "credit" ? "Credited wallet" : "Debited wallet",
+            "Users",
+            { userId: u.id, amount: amount, reason: reason }
+        );
+
+        u.walletBalance = newBalance;
+
+        delete cacheFor(u.id).wallet;
+
+        showDetails();
+
+        // Re-select the wallet tab and reload its transaction list.
+        var walletTab = document.querySelector('.tab[data-tab="wallet"]');
+        if(walletTab) walletTab.click();
+
+    }catch(error){
+        alert(error.message || "Failed to update wallet.");
+    }
+
+}
+
+
+/* =====================================================
+   WALLET TAB (transactions)
+===================================================== */
+
+async function loadWalletTab(uid){
+
+    var box = document.getElementById("walletTxnBox");
+    if(!box) return;
+
+    var cache = cacheFor(uid);
+
+    if(cache.wallet){
+        box.innerHTML = cache.wallet;
+        return;
+    }
+
+    try{
+
+        var snap;
+        try{
+            snap = await getDocs(query(
+                collection(db, "walletTransactions"),
+                where("userId", "==", uid),
+                orderBy("createdAt", "desc"),
+                limit(20)
+            ));
+        }catch(e){
+            snap = await getDocs(query(
+                collection(db, "walletTransactions"),
+                where("userId", "==", uid)
+            ));
+        }
+
+        var txns = snap.docs.map(function(d){ return d.data(); });
+
+        if(!txns.length){
+            box.innerHTML = '<div class="muted">No wallet transactions yet.</div>';
+        }else{
+
+            box.innerHTML = '<table><tr><th>Date</th><th>Type</th><th>Amount</th><th>Balance</th><th>Reason</th></tr>' +
+                txns.map(function(t){
+                    var isCredit = t.type === "credit";
+                    return '<tr>' +
+                        '<td>'+formatDate(t.createdAt)+'</td>' +
+                        '<td>'+(isCredit ? "Credit" : "Debit")+'</td>' +
+                        '<td style="color:'+(isCredit ? "#16a34a" : "#dc2626")+';">'+(isCredit ? "+" : "-")+'₹'+(t.amount||0)+'</td>' +
+                        '<td>₹'+(t.balanceAfter ?? "")+'</td>' +
+                        '<td>'+escapeHtml(t.reason || "—")+'</td>' +
+                        '</tr>';
+                }).join("") +
+                '</table>';
+        }
+
+        cache.wallet = box.innerHTML;
+
+    }catch(error){
+        console.error(error);
+        box.innerHTML = '<div class="muted">❌ Unable to load transactions.</div>';
+    }
+
+}
+
+
+/* =====================================================
+   ORDERS TAB
+===================================================== */
+
+async function loadOrdersTab(uid, statOnly){
+
+    var cache = cacheFor(uid);
+    var statEl = document.getElementById("statOrders");
+    var box = document.getElementById("ordersBox");
+
+    if(cache.orders){
+        if(statEl) statEl.textContent = cache.orders.count;
+        if(box && !statOnly) box.innerHTML = cache.orders.html;
+        return;
+    }
+
+    try{
+
+        var snap = await getDocs(query(collection(db, "orders"), where("userId", "==", uid)));
+
+        var orders = snap.docs.map(function(d){ return { id: d.id, ...d.data() }; });
+
+        if(statEl) statEl.textContent = orders.length;
+
+        var html;
+
+        if(!orders.length){
+            html = '<div class="muted">No orders yet.</div>';
+        }else{
+            html = '<table><tr><th>Order ID</th><th>Items</th><th>Amount</th><th>Status</th><th>Date</th></tr>' +
+                orders.map(function(o){
+                    var total = o.total ?? o.totalPrice ?? 0;
+                    var itemCount = Array.isArray(o.products) ? o.products.length : 0;
+                    return '<tr>' +
+                        '<td>#'+escapeHtml(o.id.slice(0,8))+'</td>' +
+                        '<td>'+itemCount+' item(s)</td>' +
+                        '<td>₹'+total+'</td>' +
+                        '<td>'+escapeHtml(o.status || "Pending")+'</td>' +
+                        '<td>'+formatDate(o.createdAt)+'</td>' +
+                        '</tr>';
+                }).join("") +
+                '</table>';
+        }
+
+        cache.orders = { count: orders.length, html: html };
+
+        if(box && !statOnly) box.innerHTML = html;
+
+    }catch(error){
+        console.error(error);
+        if(statEl) statEl.textContent = "—";
+        if(box && !statOnly) box.innerHTML = '<div class="muted">❌ Unable to load orders.</div>';
+    }
+
+}
+
+
+/* =====================================================
+   LIKED TAB (users/{uid}/wishlist)
+===================================================== */
+
+async function loadLikedTab(uid, statOnly){
+
+    var cache = cacheFor(uid);
+    var statEl = document.getElementById("statLiked");
+    var box = document.getElementById("likedBox");
+
+    if(cache.liked){
+        if(statEl) statEl.textContent = cache.liked.count;
+        if(box && !statOnly) box.innerHTML = cache.liked.html;
+        return;
+    }
+
+    try{
+
+        var snap = await getDocs(collection(db, "users", uid, "wishlist"));
+
+        var liked = snap.docs.map(function(d){ return { id: d.id, ...d.data() }; });
+
+        if(statEl) statEl.textContent = liked.length;
+
+        var html;
+
+        if(!liked.length){
+            html = '<div class="muted">No liked products.</div>';
+        }else{
+            html = '<table><tr><th>Product</th><th>Price</th></tr>' +
+                liked.map(function(p){
+                    return '<tr>' +
+                        '<td>'+escapeHtml(p.productName || "Product")+'</td>' +
+                        '<td>₹'+(p.price ?? "—")+'</td>' +
+                        '</tr>';
+                }).join("") +
+                '</table>';
+        }
+
+        cache.liked = { count: liked.length, html: html };
+
+        if(box && !statOnly) box.innerHTML = html;
+
+    }catch(error){
+        console.error(error);
+        if(statEl) statEl.textContent = "—";
+        if(box && !statOnly) box.innerHTML = '<div class="muted">❌ Unable to load liked products.</div>';
+    }
+
+}
+
+
+/* =====================================================
+   REFERRAL TAB
+===================================================== */
+
+async function loadReferralTab(uid, statOnly){
+
+    var cache = cacheFor(uid);
+    var statEl = document.getElementById("statReferrals");
+    var box = document.getElementById("referralBox");
+
+    if(cache.referral){
+        if(statEl) statEl.textContent = cache.referral.count;
+        if(box && !statOnly) box.innerHTML = cache.referral.html;
+        return;
+    }
+
+    try{
+
+        var snap = await getDocs(query(collection(db, "referrals"), where("referrerId", "==", uid)));
+
+        var referrals = snap.docs.map(function(d){ return d.data(); });
+
+        var rewarded = referrals.filter(function(r){ return r.status === "Rewarded"; });
+        var totalEarned = rewarded.reduce(function(sum, r){ return sum + Number(r.rewardAmount || 0); }, 0);
+
+        if(statEl) statEl.textContent = referrals.length;
+
+        var html = '<div class="stats">' +
+            '<div class="stat">Total Referrals<b>'+referrals.length+'</b></div>' +
+            '<div class="stat">Rewarded<b>'+rewarded.length+'</b></div>' +
+            '<div class="stat">Total Earned<b>₹'+totalEarned.toLocaleString("en-IN")+'</b></div>' +
+            '</div>';
+
+        if(!referrals.length){
+            html += '<div class="muted">No referrals yet.</div>';
+        }else{
+            html += '<div class="table-box"><table><tr><th>Referred</th><th>Contact</th><th>Status</th><th>Reward</th></tr>' +
+                referrals.map(function(r){
+                    return '<tr>' +
+                        '<td>'+escapeHtml(r.referredName || "—")+'</td>' +
+                        '<td>'+escapeHtml(r.referredContact || "—")+'</td>' +
+                        '<td>'+escapeHtml(r.status || "Pending")+'</td>' +
+                        '<td>₹'+(r.rewardAmount ?? 0)+'</td>' +
+                        '</tr>';
+                }).join("") +
+                '</table></div>';
+        }
+
+        cache.referral = { count: referrals.length, html: html };
+
+        if(box && !statOnly) box.innerHTML = html;
+
+    }catch(error){
+        console.error(error);
+        if(statEl) statEl.textContent = "—";
+        if(box && !statOnly) box.innerHTML = '<div class="muted">❌ Unable to load referrals.</div>';
+    }
+
+}
+
+
+/* =====================================================
+   MESSAGES TAB (chats/{uid}/messages)
+===================================================== */
+
+async function loadMessagesTab(uid){
+
+    var box = document.getElementById("messagesBox");
+    if(!box) return;
+
+    var cache = cacheFor(uid);
+
+    try{
+
+        var snap;
+        try{
+            snap = await getDocs(query(collection(db, "chats", uid, "messages"), orderBy("createdAt", "asc")));
+        }catch(e){
+            snap = await getDocs(collection(db, "chats", uid, "messages"));
+        }
+
+        var messages = snap.docs.map(function(d){ return d.data(); });
+
+        if(!messages.length){
+            box.innerHTML = '<div class="muted">No messages yet.</div>';
+        }else{
+            box.innerHTML = messages.map(function(m){
+                var isAdmin = m.sender === "admin";
+                return '<div class="message'+(isAdmin ? " admin" : "")+'">' +
+                    '<b>'+(isAdmin ? "Admin" : "User")+'</b><br><br>' +
+                    escapeHtml(m.text || "") +
+                    '<br><br>' +
+                    '<span class="small">'+formatDate(m.createdAt)+'</span>' +
+                    '</div>';
+            }).join("");
+        }
+
+        cache.messages = box.innerHTML;
+
+    }catch(error){
+        console.error(error);
+        box.innerHTML = '<div class="muted">❌ Unable to load messages.</div>';
+    }
+
+}
+
+
+/* =====================================================
+   ADMIN AUTH GUARD + START
+===================================================== */
+
+onAuthStateChanged(auth, async function(user){
+
+    if(!user){
+        window.location.href = "login.html";
+        return;
+    }
+
+    try{
+
+        var adminDoc = await getDoc(doc(db, "users", user.uid));
+
+        if(!adminDoc.exists() || adminDoc.data().isAdmin !== true){
+            alert("Access Denied ❌");
+            window.location.href = "home.html";
+            return;
+        }
+
+    }catch(error){
+        console.error("Admin check error:", error);
+        window.location.href = "home.html";
+        return;
+    }
+
+    loadUsers();
+
+});
+
+</script>
+
+</body>
+</html>

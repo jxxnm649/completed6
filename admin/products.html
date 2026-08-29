@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Orders — Bestify Admin</title>
+  <title>Products — Bestify Admin</title>
 
   <link rel="stylesheet" href="../theme.css">
   <link rel="stylesheet" href="../design-system.css">
@@ -46,14 +46,14 @@
         </button>
 
         <button
-          class="bf-admin-nav-item"
-          onclick="location.href='products.html'">
+          class="bf-admin-nav-item bf-admin-nav-active">
           📦
           <span>Products</span>
         </button>
 
         <button
-          class="bf-admin-nav-item bf-admin-nav-active">
+          class="bf-admin-nav-item"
+          onclick="location.href='orders.html'">
           🧾
           <span>Orders</span>
         </button>
@@ -190,6 +190,14 @@
       <!-- Header -->
       <header class="bf-admin-header">
 
+        <button
+          type="button"
+          class="bf-btn bf-btn-ghost bf-btn-sm"
+          onclick="location.href='index.html'"
+          aria-label="Back">
+          🔙 Back
+        </button>
+
         <div class="bf-admin-header-title">
 
           <span class="bf-admin-header-brand">
@@ -197,7 +205,7 @@
           </span>
 
           <span class="bf-admin-header-label">
-            Orders
+            Products
           </span>
 
         </div>
@@ -211,62 +219,64 @@
         <section class="bf-admin-welcome">
 
           <h1>
-            Orders
+            Products
           </h1>
 
           <p class="bf-admin-welcome-sub">
-            Track and update every order placed on Bestify.
+            Add, edit, and manage your Bestify catalog.
           </p>
 
         </section>
 
 
-        <!-- Search + filter -->
+        <div style="margin-bottom:20px;">
+          <button
+            type="button"
+            id="addProductBtn"
+            class="bf-btn bf-btn-primary">
+            + Add Product
+          </button>
+        </div>
+
+
+        <!-- Search -->
         <div style="margin-bottom:20px; display:flex; gap:10px; flex-wrap:wrap;">
 
           <input
             type="search"
-            id="orderSearch"
+            id="productSearch"
             class="bf-input"
-            placeholder="Search by customer name, mobile, or order ID..."
+            placeholder="Search products by name or category..."
             style="flex:1; min-width:220px; max-width:500px;">
 
-          <select id="orderStatusFilter" class="bf-select" style="max-width:180px;">
-            <option value="All Status">All Status</option>
-            <option value="Pending">Pending</option>
-            <option value="Confirmed">Confirmed</option>
-            <option value="Packed">Packed</option>
-            <option value="Shipped">Shipped</option>
-            <option value="Out for Delivery">Out for Delivery</option>
-            <option value="Delivered">Delivered</option>
-            <option value="Cancelled">Cancelled</option>
+          <select id="productStatusFilter" class="bf-select" style="max-width:170px;">
+            <option value="All">All Status</option>
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
           </select>
 
         </div>
 
 
-        <!-- Order count -->
+        <!-- Product count -->
         <div
-          id="orderCount"
+          id="productCount"
           style="margin-bottom:15px;font-weight:600;">
-          Loading orders...
-        </div>
-
-        <!-- Bulk actions bar -->
-        <div id="bulkBar" style="display:none; align-items:center; gap:10px; margin-bottom:15px; background:var(--paper-dim); padding:10px 14px; border-radius:var(--radius-sm);">
-          <span id="bulkCount" style="font-weight:600; font-size:13px;"></span>
-          <button type="button" id="bulkLabelsBtn" class="bf-btn bf-btn-primary bf-btn-sm">🏷️ Download Labels</button>
-          <button type="button" id="bulkClearBtn" class="bf-btn bf-btn-ghost bf-btn-sm">Clear</button>
+          Loading products...
         </div>
 
 
-        <!-- Orders -->
+        <!-- Products -->
         <div
-          id="ordersList"
-          style="display:flex; flex-direction:column; gap:14px;">
+          id="productsList"
+          style="
+            display:grid;
+            grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+            gap:16px;
+          ">
 
           <div class="bf-card" style="padding:20px;">
-            Loading orders...
+            Loading products...
           </div>
 
         </div>
@@ -278,28 +288,110 @@
   </div>
 
 
-  <!-- Order Details Modal -->
-  <div id="orderDetailsModal" class="bf-modal-overlay">
+  <!-- Add / Edit Product Modal -->
+  <div id="productFormModal" class="bf-modal-overlay">
     <div class="bf-modal">
       <button
         type="button"
         class="bf-modal-close"
-        id="orderDetailsCloseBtn"
+        id="productFormCloseBtn"
         aria-label="Close">
         ✕
       </button>
 
-      <h2 class="bf-modal-title">Order Details</h2>
+      <h2 class="bf-modal-title" id="productFormTitle">Add Product</h2>
 
-      <div id="orderDetailsContent">
-        Loading...
-      </div>
+      <form id="productForm">
 
+        <div class="bf-field">
+          <label class="bf-label">Product Images (first one is main image) — <span id="imageCountLabel">0/8</span></label>
+          <input type="file" id="imageFile" accept="image/*" multiple>
+          <div style="font-size:12px;opacity:.65;margin-top:4px;">Tap "Choose Files" again to add more photos, up to 8 total.</div>
+          <div id="previewRow" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;"></div>
+        </div>
+
+        <div class="bf-field">
+          <label class="bf-label">Product Name</label>
+          <input type="text" id="productName" class="bf-input" required>
+        </div>
+
+        <div class="bf-field">
+          <label class="bf-label">Category</label>
+          <input type="text" id="category" class="bf-input" list="categoryList" required>
+          <datalist id="categoryList"></datalist>
+        </div>
+
+        <div class="bf-field">
+          <label class="bf-label">MRP (original price, optional)</label>
+          <input type="number" id="mrp" class="bf-input" min="0">
+        </div>
+
+        <div class="bf-field">
+          <label class="bf-label">Selling Price</label>
+          <input type="number" id="price" class="bf-input" min="0" required>
+        </div>
+
+        <div class="bf-field">
+          <label class="bf-label">Stock Quantity</label>
+          <input type="number" id="stock" class="bf-input" min="0" required>
+        </div>
+
+        <div class="bf-field">
+          <label class="bf-label">Description</label>
+          <textarea id="description" class="bf-textarea" required></textarea>
+        </div>
+
+        <div class="bf-field">
+          <label class="bf-label">Sizes (comma separated, optional)</label>
+          <input type="text" id="sizes" class="bf-input" placeholder="S, M, L">
+        </div>
+
+        <div class="bf-field">
+          <label class="bf-label">Colours (comma separated, optional)</label>
+          <input type="text" id="colours" class="bf-input" placeholder="Red, Blue, Black">
+        </div>
+
+        <div class="bf-field">
+          <label class="bf-label">Return Policy</label>
+          <select id="returnPolicy" class="bf-select">
+            <option value="7 Days Return">7 Days Return</option>
+            <option value="No Return">No Return</option>
+            <option value="Custom">Custom</option>
+          </select>
+          <input type="text" id="returnPolicyCustom" class="bf-input" placeholder="e.g. 3 Days Replacement Only" style="display:none;margin-top:8px;">
+        </div>
+
+        <div class="bf-field">
+          <label class="bf-label">Warranty</label>
+          <select id="warranty" class="bf-select">
+            <option value="6 Month Warranty">6 Month Warranty</option>
+            <option value="No Warranty">No Warranty</option>
+            <option value="Custom">Custom</option>
+          </select>
+          <input type="text" id="warrantyCustom" class="bf-input" placeholder="e.g. 1 Year Brand Warranty" style="display:none;margin-top:8px;">
+        </div>
+
+        <div class="bf-field">
+          <label class="bf-label">Status</label>
+          <select id="status" class="bf-select">
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+          </select>
+        </div>
+
+        <button
+          type="submit"
+          id="productFormSubmitBtn"
+          class="bf-btn bf-btn-primary bf-btn-block">
+          Save Product
+        </button>
+
+      </form>
     </div>
   </div>
 
 
-  <script type="module" src="orders.js"></script>
+  <script type="module" src="products.js"></script>
 
 </body>
 </html>
