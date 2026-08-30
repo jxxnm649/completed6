@@ -1,0 +1,520 @@
+.qo-body{
+    padding-bottom: 90px;
+    background: var(--paper);
+    /* Some Android browsers auto-invert colors on pages that
+       don't declare a scheme, which was recoloring buttons
+       inconsistently (e.g. the outline Back button). This pins
+       the site to light mode regardless of device dark-mode
+       forcing. */
+    color-scheme: light only;
+}
+
+.qo-container{
+    padding-bottom: 24px;
+}
+
+/* ---------- Header ---------- */
+
+.qo-header{
+    display: flex;
+    align-items: center;
+    padding: 18px 4px 6px;
+}
+
+.qo-back{
+    text-decoration: none;
+    color: var(--ink);
+    font-size: 20px;
+    width: 30px;
+}
+
+.qo-header-title{
+    flex: 1;
+    text-align: center;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 17px;
+    color: var(--ink);
+}
+
+.qo-header-spacer{
+    width: 30px;
+}
+
+/* ---------- Step tracker ---------- */
+
+.qo-tracker-card{
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    padding: 16px 8px;
+    margin: 4px 0 18px;
+}
+
+.qo-tracker{
+    display: flex;
+    align-items: flex-start;
+}
+
+.qo-tracker-step{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    flex: 0 0 auto;
+    width: 44px;
+}
+
+.qo-tracker-circle{
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 2px solid var(--line);
+    color: var(--ink-soft);
+    background: var(--card);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    transition: all .2s ease;
+}
+
+.qo-tracker-label{
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    white-space: nowrap;
+}
+
+.qo-tracker-line{
+    flex: 1;
+    height: 2px;
+    background: var(--line);
+    margin-top: 15px;
+}
+
+.qo-tracker-step.active .qo-tracker-circle{
+    background: var(--leaf);
+    border-color: var(--leaf);
+    color: #fff;
+}
+
+.qo-tracker-step.active .qo-tracker-label{
+    color: var(--leaf);
+    font-weight: 700;
+}
+
+.qo-tracker-step.done .qo-tracker-circle{
+    background: var(--leaf-bg);
+    border-color: var(--leaf);
+    color: var(--leaf);
+}
+
+.qo-tracker-step.done .qo-tracker-circle::after{
+    content: "✓";
+}
+
+.qo-tracker-step.done .qo-tracker-circle span{
+    display: none;
+}
+
+.qo-tracker-line.done{
+    background: var(--leaf);
+}
+
+/* ---------- Breadcrumb summary ---------- */
+
+.qo-breadcrumb{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--leaf-bg);
+    border: 1px solid var(--leaf);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+}
+
+#qoBreadcrumbText{
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.qo-change-btn{
+    border: 1px solid var(--leaf);
+    background: #fff;
+    color: var(--leaf);
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 999px;
+    padding: 5px 12px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+/* ---------- Panels ---------- */
+
+.qo-panel{
+    display: none;
+}
+
+.qo-panel.active{
+    display: block;
+    animation: qoFadeIn .2s ease;
+}
+
+@keyframes qoFadeIn{
+    from{ opacity: 0; transform: translateY(6px); }
+    to{ opacity: 1; transform: translateY(0); }
+}
+
+.qo-title{
+    font-size: 19px;
+    margin: 4px 0 4px;
+}
+
+.qo-sub{
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin: 0 0 16px;
+}
+
+/* ---------- Brand grid (Step 1) ---------- */
+
+.qo-grid-brand{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.qo-brand-tile{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 6px;
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--card);
+    cursor: pointer;
+}
+
+.qo-brand-tile.selected{
+    border-color: var(--leaf);
+    box-shadow: 0 0 0 2px var(--leaf-bg);
+}
+
+.qo-brand-avatar{
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 800;
+    font-size: 17px;
+}
+
+.qo-brand-label{
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink);
+    text-align: center;
+}
+
+/* ---------- List rows (Series / Category) ---------- */
+
+.qo-list{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.qo-list-row{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--card);
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 13px 14px;
+    cursor: pointer;
+    text-align: left;
+}
+
+.qo-list-row.selected{
+    border-color: var(--leaf);
+    background: var(--leaf-bg);
+}
+
+.qo-list-row-icon{
+    font-size: 22px;
+    flex-shrink: 0;
+    width: 30px;
+    text-align: center;
+}
+
+.qo-list-row-img{
+    width: 54px;
+    height: 54px;
+    border-radius: 10px;
+    object-fit: cover;
+    object-position: center;
+    flex-shrink: 0;
+    background: var(--paper-dim);
+    border: 1px solid var(--line);
+}
+
+.qo-list-row-text{
+    flex: 1;
+    min-width: 0;
+}
+
+.qo-list-row-title{
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink);
+}
+
+.qo-list-row-sub{
+    font-size: 11.5px;
+    color: var(--ink-soft);
+    margin-top: 2px;
+}
+
+.qo-list-row-check{
+    font-size: 16px;
+    color: var(--leaf);
+    flex-shrink: 0;
+    opacity: 0;
+}
+
+.qo-list-row.selected .qo-list-row-check{
+    opacity: 1;
+}
+
+.qo-list-row-chevron{
+    color: var(--ink-soft);
+    font-size: 15px;
+    flex-shrink: 0;
+}
+
+/* ---------- Custom text input rows ---------- */
+
+.qo-custom-row{
+    margin-bottom: 10px;
+}
+
+.qo-text-input{
+    width: 100%;
+    padding: 13px 14px;
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    background: var(--card);
+}
+
+.qo-search-box{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    background: var(--card);
+    margin-bottom: 14px;
+}
+
+.qo-search-box input{
+    flex: 1;
+    border: 0;
+    outline: none;
+    font-size: 14px;
+    background: transparent;
+}
+
+/* ---------- Product listing (Step 5) ---------- */
+
+.qo-product-list{
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 16px;
+}
+
+.qo-product-card{
+    display: flex;
+    gap: 12px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 12px;
+    box-shadow: var(--shadow-sm);
+}
+
+.qo-product-img{
+    width: 84px;
+    height: 84px;
+    object-fit: cover;
+    object-position: center;
+    border-radius: 10px;
+    background: var(--paper-dim);
+    border: 1px solid var(--line);
+    flex-shrink: 0;
+}
+
+.qo-product-info{
+    flex: 1;
+    min-width: 0;
+}
+
+.qo-product-name{
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.3;
+}
+
+.qo-product-for{
+    font-size: 11px;
+    color: var(--ink-soft);
+    margin: 2px 0 4px;
+}
+
+.qo-product-rating{
+    font-size: 11.5px;
+    color: var(--ink-soft);
+    margin-bottom: 4px;
+}
+
+.qo-product-rating .star{
+    color: #F2A93B;
+}
+
+.qo-product-price-row{
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+}
+
+.qo-product-price{
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--ink);
+}
+
+.qo-product-mrp{
+    font-size: 12px;
+    color: var(--ink-soft);
+    text-decoration: line-through;
+}
+
+.qo-product-off{
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--leaf);
+    background: var(--leaf-bg);
+    padding: 2px 6px;
+    border-radius: 6px;
+}
+
+.qo-order-btn{
+    width: 100%;
+    border: 0;
+    background: var(--leaf);
+    color: #fff;
+    font-size: 12.5px;
+    font-weight: 700;
+    padding: 9px;
+    border-radius: 999px;
+    cursor: pointer;
+}
+
+.qo-order-btn:disabled{
+    opacity: .6;
+}
+
+.qo-loading{
+    text-align: center;
+    padding: 24px 0;
+    color: var(--ink-soft);
+    font-size: 13px;
+}
+
+/* ---------- Buttons ---------- */
+
+.qo-btn{
+    display: block;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 999px;
+    padding: 13px 16px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.qo-btn-block{
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.qo-btn-primary{
+    background: var(--leaf);
+    color: #fff;
+    border: 1.5px solid var(--leaf);
+}
+
+.qo-btn-ghost{
+    background: var(--leaf-bg);
+    color: var(--leaf);
+    border: 1.5px solid var(--leaf);
+}
+
+.qo-btn-outline{
+    background: #fff;
+    color: var(--rust);
+    border: 1.5px solid var(--rust);
+}
+
+/* ---------- Back/Next nav bar ---------- */
+
+.qo-nav-bar{
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.qo-nav-bar .qo-btn{
+    flex: 1;
+    margin-bottom: 0;
+}
+
+/* ---------- Done screen ---------- */
+
+.qo-done-box{
+    text-align: center;
+    padding: 30px 10px;
+}
+
+.qo-done-icon{
+    font-size: 52px;
+    margin-bottom: 10px;
+}
+
+.qo-bottom-nav a.active,
+.qo-bottom-nav a:visited{
+    color: inherit;
+}

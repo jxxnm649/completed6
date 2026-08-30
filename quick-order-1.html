@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light only">
+    <title>Find Your Product — Bestify</title>
+
+    <link rel="stylesheet" href="theme.css">
+    <link rel="stylesheet" href="quick-order.css">
+</head>
+
+<body class="bf-has-nav qo-body">
+
+<div class="container qo-container">
+
+    <!-- Header -->
+    <div class="qo-header">
+        <a href="home.html" class="qo-back" aria-label="Back">←</a>
+        <span class="qo-header-title">Find Your Product</span>
+        <span class="qo-header-spacer"></span>
+    </div>
+
+    <!-- Step tracker -->
+    <div class="qo-tracker-card">
+        <div class="qo-tracker" id="qoTracker">
+            <div class="qo-tracker-step" data-step="1">
+                <span class="qo-tracker-circle">1</span>
+                <span class="qo-tracker-label">Brand</span>
+            </div>
+            <div class="qo-tracker-line"></div>
+            <div class="qo-tracker-step" data-step="2">
+                <span class="qo-tracker-circle">2</span>
+                <span class="qo-tracker-label">Series</span>
+            </div>
+            <div class="qo-tracker-line"></div>
+            <div class="qo-tracker-step" data-step="3">
+                <span class="qo-tracker-circle">3</span>
+                <span class="qo-tracker-label">Model</span>
+            </div>
+            <div class="qo-tracker-line"></div>
+            <div class="qo-tracker-step" data-step="4">
+                <span class="qo-tracker-circle">4</span>
+                <span class="qo-tracker-label">Category</span>
+            </div>
+            <div class="qo-tracker-line"></div>
+            <div class="qo-tracker-step" data-step="5">
+                <span class="qo-tracker-circle">5</span>
+                <span class="qo-tracker-label">Type</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Breadcrumb summary (shown from Step 2 onward) -->
+    <div class="qo-breadcrumb" id="qoBreadcrumb" style="display:none;">
+        <span id="qoBreadcrumbText"></span>
+        <button type="button" class="qo-change-btn" id="qoChangeBtn">Change</button>
+    </div>
+
+    <!-- STEP 1: BRAND -->
+    <section class="qo-panel active" id="qoStep1">
+        <h2 class="qo-title">Which brand is your phone?</h2>
+        <p class="qo-sub">This helps us match the right size/fit.</p>
+        <div class="qo-grid qo-grid-brand" id="qoBrandGrid"></div>
+    </section>
+
+    <!-- STEP 2: SERIES -->
+    <section class="qo-panel" id="qoStep2">
+        <h2 class="qo-title">Select your series</h2>
+        <p class="qo-sub">Choose the series of your device.</p>
+        <div class="qo-list" id="qoSeriesList"></div>
+        <div class="qo-custom-row">
+            <input type="text" id="qoSeriesInput" class="qo-text-input" placeholder="Not listed? Type it here">
+        </div>
+    </section>
+
+    <!-- STEP 3: MODEL -->
+    <section class="qo-panel" id="qoStep3">
+        <h2 class="qo-title">Select your model</h2>
+        <p class="qo-sub">Choose the exact model of your device.</p>
+        <div class="qo-search-box">
+            <span>🔍</span>
+            <input type="text" id="qoModelSearch" placeholder="Search your model">
+        </div>
+        <div class="qo-list" id="qoModelList"></div>
+    </section>
+
+    <!-- STEP 4: CATEGORY -->
+    <section class="qo-panel" id="qoStep4">
+        <h2 class="qo-title">What do you need?</h2>
+        <p class="qo-sub">Choose the category you want.</p>
+        <div class="qo-list" id="qoCategoryList">
+            <div class="qo-loading">Loading categories…</div>
+        </div>
+    </section>
+
+    <!-- STEP 5: TYPE (real products for that category) -->
+    <section class="qo-panel" id="qoStep5">
+        <h2 class="qo-title" id="qoTypeTitle">Best picks for you</h2>
+        <p class="qo-sub" id="qoTypeSub"></p>
+        <div class="qo-product-list" id="qoProductList">
+            <div class="qo-loading">Loading products…</div>
+        </div>
+    </section>
+
+    <!-- STEP DONE -->
+    <section class="qo-panel" id="qoStepDone">
+        <div class="qo-done-box">
+            <div class="qo-done-icon">✅</div>
+            <h2 class="qo-title">Added to your cart!</h2>
+            <p class="qo-sub">Continue to checkout to pick payment &amp; place your order.</p>
+            <a href="checkout.html" class="qo-btn qo-btn-primary qo-btn-block">Continue to Checkout →</a>
+            <a href="home.html" class="qo-btn qo-btn-ghost qo-btn-block">Keep Browsing</a>
+        </div>
+    </section>
+
+    <!-- Back / Next bar -->
+    <div class="qo-nav-bar" id="qoNavBar">
+        <button type="button" class="qo-btn qo-btn-outline" id="qoBackBtn">← Back</button>
+        <button type="button" class="qo-btn qo-btn-primary" id="qoNextBtn">Next →</button>
+    </div>
+
+</div>
+
+<!-- Bottom Navigation -->
+<nav class="bottom-nav qo-bottom-nav">
+    <a href="home.html"><span>🏠</span><p>Home</p></a>
+    <a href="wishlist.html"><span>😊</span><p>Liked</p></a>
+    <a href="orders.html"><span>📦</span><p>Orders</p></a>
+    <a href="profile.html"><span>🏪</span><p>My Account</p></a>
+</nav>
+
+<script type="module" src="quick-order.js"></script>
+<script type="module" src="logout.js"></script>
+
+</body>
+</html>
