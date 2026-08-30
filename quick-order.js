@@ -5,8 +5,6 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
 
 import {
-  doc,
-  setDoc,
   collection,
   getDocs
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
@@ -22,27 +20,16 @@ let allProducts = null; // fetched lazily once, on Step 4
 const selection = {
   brand: "",
   series: "",
-  model: "",
-  category: "",
-  product: null,      // the chosen product doc (id + data)
-  variantIndex: 0      // which image in product.images[] they liked
+  model: ""
 };
+
+const STEP_IDS = ["qoStep1", "qoStep2", "qoStep3", "qoStep4", "qoStep5"];
+let currentStepIndex = 0;
 
 
 /* =====================================================
-   CATEGORIES
-   (label the customer sees -> keywords matched against
-   each product's `category` field, case-insensitive)
+   BRANDS / SERIES / CATEGORIES
 ===================================================== */
-
-const CATEGORIES = [
-  { label: "Covers",             icon: "📱", keywords: ["cover", "case"] },
-  { label: "Tempered Glass",     icon: "🛡️", keywords: ["tempered", "screen guard", "screen protector"] },
-  { label: "Camera Glass",       icon: "📷", keywords: ["camera glass", "camera lens", "camera protector"] },
-  { label: "Unique Products",    icon: "✨", keywords: ["unique"] },
-  { label: "Mobile Battery",     icon: "🔋", keywords: ["battery"] },
-  { label: "Customized Cover",   icon: "🎨", keywords: ["customized", "custom cover", "customised"] }
-];
 
 const BRANDS = [
   { label: "Samsung",  color: "#1428A0" },
@@ -57,15 +44,25 @@ const BRANDS = [
 ];
 
 const SERIES_SUGGESTIONS = {
-  "Samsung": ["Galaxy A", "Galaxy M", "Galaxy S", "Galaxy F", "Galaxy Note"],
-  "Xiaomi/Redmi": ["Redmi Note", "Redmi", "Poco", "Mi"],
-  "Vivo": ["Vivo Y", "Vivo V", "Vivo T"],
-  "Oppo": ["Oppo A", "Oppo F", "Oppo Reno"],
-  "Realme": ["Realme Narzo", "Realme C", "Realme Number"],
-  "Apple": ["iPhone"],
-  "OnePlus": ["OnePlus Nord", "OnePlus Number"],
-  "Motorola": ["Moto G", "Moto Edge"]
+  "Samsung":        [["Galaxy S Series", "Premium flagship experience"], ["Galaxy A Series", "Awesome is for everyone"], ["Galaxy M Series", "Monster performance"], ["Galaxy F Series", "Fun. Fast. Secure."], ["Galaxy Z Series", "The future of innovation"], ["Galaxy Note Series", "Power meets productivity"]],
+  "Apple":          [["iPhone", "The gold standard"]],
+  "Xiaomi/Redmi":   [["Redmi Note", "Great value, great specs"], ["Redmi", "Everyday reliability"], ["Poco", "Built for speed"], ["Mi", "Xiaomi's flagship line"]],
+  "Vivo":           [["Vivo Y Series", "Style meets performance"], ["Vivo V Series", "Camera-first design"], ["Vivo T Series", "Power for the young"]],
+  "Oppo":           [["Oppo A Series", "Affordable everyday"], ["Oppo F Series", "Selfie expert"], ["Oppo Reno Series", "Design-led flagship"]],
+  "Realme":         [["Realme Narzo", "Built for gaming"], ["Realme C Series", "Budget essentials"], ["Realme Number Series", "Realme's flagship line"]],
+  "OnePlus":        [["OnePlus Nord", "Flagship features, fair price"], ["OnePlus Number Series", "Never Settle flagship"]],
+  "Motorola":       [["Moto G Series", "Reliable all-rounder"], ["Moto Edge Series", "Premium design"]],
+  "Other":          []
 };
+
+const CATEGORIES = [
+  { label: "Covers",           icon: "📱", keywords: ["cover", "case"] },
+  { label: "Tempered Glass",   icon: "🛡️", keywords: ["tempered", "screen guard", "screen protector"] },
+  { label: "Camera Glass",     icon: "📷", keywords: ["camera glass", "camera lens", "camera protector"] },
+  { label: "Unique Products",  icon: "✨", keywords: ["unique"] },
+  { label: "Mobile Battery",   icon: "🔋", keywords: ["battery"] },
+  { label: "Customized Cover", icon: "🎨", keywords: ["customized", "custom cover", "customised"] }
+];
 
 
 /* =====================================================
@@ -78,37 +75,93 @@ function escapeHtml(str) {
   })[m]);
 }
 
-function goToStep(stepId) {
-  document.querySelectorAll(".qo-panel").forEach(p => p.classList.remove("active"));
-  document.getElementById(stepId).classList.add("active");
+function phoneLabel() {
+  return [selection.brand, selection.series, selection.model].filter(Boolean).join(" ");
+}
 
-  const stepNumber = { qoStep1: 1, qoStep2: 2, qoStep3: 3, qoStep4: 4, qoStep5: 5, qoStep6: 6 }[stepId];
-
-  document.querySelectorAll(".qo-step").forEach(el => {
-    const n = Number(el.dataset.step);
-    el.classList.toggle("active", n === stepNumber);
-    el.classList.toggle("done", stepNumber && n < stepNumber);
+function updateTracker() {
+  document.querySelectorAll(".qo-tracker-step").forEach(el => {
+    const n = Number(el.dataset.step) - 1;
+    el.classList.toggle("active", n === currentStepIndex);
+    el.classList.toggle("done", n < currentStepIndex);
   });
+  document.querySelectorAll(".qo-tracker-line").forEach((el, i) => {
+    el.classList.toggle("done", i < currentStepIndex);
+  });
+}
 
-  const backBtn = document.getElementById("qoBackStep");
-  backBtn.style.display = (stepId === "qoStep1" || stepId === "qoStepDone") ? "none" : "block";
+function updateBreadcrumb() {
+  const bc = document.getElementById("qoBreadcrumb");
+  const text = document.getElementById("qoBreadcrumbText");
+
+  if (currentStepIndex === 0) {
+    bc.style.display = "none";
+    return;
+  }
+
+  bc.style.display = "flex";
+  text.textContent = phoneLabel() || "Your phone";
+}
+
+function updateNavBar() {
+  const navBar = document.getElementById("qoNavBar");
+  const backBtn = document.getElementById("qoBackBtn");
+  const nextBtn = document.getElementById("qoNextBtn");
+
+  // Step 1 (brand) advances automatically on tap, and Step 5
+  // (products) advances via each product's own "Place Order Now" —
+  // neither needs the shared Back/Next bar.
+  if (currentStepIndex === 0 || currentStepIndex === 4) {
+    navBar.style.display = "none";
+    return;
+  }
+
+  navBar.style.display = "flex";
+  backBtn.style.display = "block";
+  nextBtn.textContent = "Next →";
+}
+
+function showStep(index) {
+  currentStepIndex = index;
+
+  document.querySelectorAll(".qo-panel").forEach(p => p.classList.remove("active"));
+  document.getElementById(STEP_IDS[index]).classList.add("active");
+
+  updateTracker();
+  updateBreadcrumb();
+  updateNavBar();
 
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-const STEP_ORDER = ["qoStep1", "qoStep2", "qoStep3", "qoStep4", "qoStep5", "qoStep6"];
-let historyStack = ["qoStep1"];
+function goNext() {
 
-function advanceTo(stepId) {
-  historyStack.push(stepId);
-  goToStep(stepId);
+  if (currentStepIndex === 1 && !selection.series) {
+    const typed = document.getElementById("qoSeriesInput").value.trim();
+    if (!typed) { alert("Please choose or type your series"); return; }
+    selection.series = typed;
+  }
+
+  if (currentStepIndex === 2 && !selection.model) {
+    alert("Please choose your model");
+    return;
+  }
+
+  if (currentStepIndex === 3) {
+    return; // category tap itself advances to Step 5
+  }
+
+  showStep(Math.min(currentStepIndex + 1, STEP_IDS.length - 1));
+
+  if (currentStepIndex === 3) renderCategoryList();
 }
 
-document.getElementById("qoBackStep").addEventListener("click", () => {
-  if (historyStack.length > 1) {
-    historyStack.pop();
-    goToStep(historyStack[historyStack.length - 1]);
-  }
+document.getElementById("qoNextBtn").addEventListener("click", goNext);
+document.getElementById("qoBackBtn").addEventListener("click", () => {
+  showStep(Math.max(currentStepIndex - 1, 0));
+});
+document.getElementById("qoChangeBtn").addEventListener("click", () => {
+  showStep(0);
 });
 
 
@@ -131,14 +184,15 @@ document.getElementById("qoBrandGrid").addEventListener("click", (e) => {
   if (!tile) return;
 
   selection.brand = tile.dataset.brand;
+  selection.series = "";
+  selection.model = "";
 
   document.querySelectorAll(".qo-brand-tile").forEach(t => t.classList.remove("selected"));
   tile.classList.add("selected");
 
-  renderSeriesSuggestions();
-  document.getElementById("qoSeriesSub").textContent = `Popular ${selection.brand} series (or type your own):`;
+  renderSeriesList();
 
-  setTimeout(() => advanceTo("qoStep2"), 150);
+  setTimeout(() => showStep(1), 150);
 });
 
 
@@ -146,57 +200,79 @@ document.getElementById("qoBrandGrid").addEventListener("click", (e) => {
    STEP 2 — SERIES
 ===================================================== */
 
-function renderSeriesSuggestions() {
-  const grid = document.getElementById("qoSeriesGrid");
+function renderSeriesList() {
+  const list = document.getElementById("qoSeriesList");
   const suggestions = SERIES_SUGGESTIONS[selection.brand] || [];
 
-  grid.innerHTML = suggestions.map(s => `
-    <div class="qo-chip" data-series="${escapeHtml(s)}">${escapeHtml(s)}</div>
+  list.innerHTML = suggestions.map(([name, sub]) => `
+    <div class="qo-list-row" data-series="${escapeHtml(name)}">
+      <span class="qo-list-row-text">
+        <span class="qo-list-row-title">${escapeHtml(name)}</span>
+        <span class="qo-list-row-sub">${escapeHtml(sub)}</span>
+      </span>
+      <span class="qo-list-row-check">✓</span>
+    </div>
   `).join("");
+
+  document.getElementById("qoSeriesInput").value = "";
 }
 
-document.getElementById("qoSeriesGrid").addEventListener("click", (e) => {
-  const chip = e.target.closest(".qo-chip");
-  if (!chip) return;
+document.getElementById("qoSeriesList").addEventListener("click", (e) => {
+  const row = e.target.closest(".qo-list-row");
+  if (!row) return;
 
-  document.querySelectorAll("#qoSeriesGrid .qo-chip").forEach(c => c.classList.remove("selected"));
-  chip.classList.add("selected");
+  selection.series = row.dataset.series;
+  selection.model = "";
 
-  document.getElementById("qoSeriesInput").value = chip.dataset.series;
-});
+  document.querySelectorAll("#qoSeriesList .qo-list-row").forEach(r => r.classList.remove("selected"));
+  row.classList.add("selected");
 
-document.getElementById("qoSeriesNext").addEventListener("click", () => {
-  const value = document.getElementById("qoSeriesInput").value.trim();
+  document.getElementById("qoSeriesInput").value = "";
 
-  if (!value) {
-    alert("Please enter or select a series");
-    return;
-  }
+  renderModelList();
 
-  selection.series = value;
-  advanceTo("qoStep3");
+  setTimeout(() => showStep(2), 150);
 });
 
 
 /* =====================================================
    STEP 3 — MODEL
+   (no fixed model database — free-text entry, matching
+   how the rest of this shop's catalogue works)
 ===================================================== */
 
-document.getElementById("qoModelNext").addEventListener("click", () => {
-  const value = document.getElementById("qoModelInput").value.trim();
+function renderModelList() {
+  const list = document.getElementById("qoModelList");
+  list.innerHTML = `
+    <div class="qo-list-row" id="qoModelCustomRow">
+      <span class="qo-list-row-icon">✏️</span>
+      <span class="qo-list-row-text">
+        <span class="qo-list-row-title">Type your exact model</span>
+        <span class="qo-list-row-sub">e.g. "A54 5G", "Note 13 Pro", "15 Pro Max"</span>
+      </span>
+    </div>
+  `;
+  document.getElementById("qoModelSearch").value = "";
+}
 
-  if (!value) {
-    alert("Please enter your exact model");
-    return;
+document.getElementById("qoModelSearch").addEventListener("input", function () {
+  const value = this.value.trim();
+  const row = document.getElementById("qoModelCustomRow");
+  if (!row) return;
+
+  if (value) {
+    selection.model = value;
+    row.classList.add("selected");
+    row.querySelector(".qo-list-row-title").textContent = value;
+  } else {
+    selection.model = "";
+    row.classList.remove("selected");
+    row.querySelector(".qo-list-row-title").textContent = "Type your exact model";
   }
+});
 
-  selection.model = value;
-
-  document.getElementById("qoPhoneSummary").textContent =
-    `For your ${selection.brand} ${selection.series} ${selection.model}`;
-
-  advanceTo("qoStep4");
-  renderCategoryGrid();
+document.getElementById("qoModelList").addEventListener("click", () => {
+  document.getElementById("qoModelSearch").focus();
 });
 
 
@@ -224,191 +300,102 @@ function productsForCategory(catDef) {
   });
 }
 
-async function renderCategoryGrid() {
-  const grid = document.getElementById("qoCategoryGrid");
-  grid.innerHTML = `<div class="qo-loading">Loading categories…</div>`;
+async function renderCategoryList() {
+  const list = document.getElementById("qoCategoryList");
+  list.innerHTML = `<div class="qo-loading">Loading categories…</div>`;
 
   await ensureProductsLoaded();
 
-  grid.innerHTML = CATEGORIES.map(cat => {
+  list.innerHTML = CATEGORIES.map(cat => {
     const matches = productsForCategory(cat);
     const sampleImage = matches.find(p => p.image)?.image;
 
     return `
-      <div class="qo-category-tile" data-category="${escapeHtml(cat.label)}">
+      <div class="qo-list-row" data-category="${escapeHtml(cat.label)}">
         ${sampleImage
-          ? `<img class="qo-category-img" src="${escapeHtml(sampleImage)}" alt="${escapeHtml(cat.label)}">`
-          : `<div class="qo-category-icon">${cat.icon}</div>`
+          ? `<img class="qo-list-row-img" src="${escapeHtml(sampleImage)}" alt="">`
+          : `<span class="qo-list-row-icon">${cat.icon}</span>`
         }
-        <div class="qo-category-label">${escapeHtml(cat.label)}</div>
+        <span class="qo-list-row-text">
+          <span class="qo-list-row-title">${escapeHtml(cat.label)}</span>
+          <span class="qo-list-row-sub">${matches.length} product${matches.length === 1 ? "" : "s"} found</span>
+        </span>
+        <span class="qo-list-row-chevron">›</span>
       </div>
     `;
   }).join("");
 }
 
-document.getElementById("qoCategoryGrid").addEventListener("click", (e) => {
-  const tile = e.target.closest(".qo-category-tile");
-  if (!tile) return;
+document.getElementById("qoCategoryList").addEventListener("click", (e) => {
+  const row = e.target.closest(".qo-list-row");
+  if (!row) return;
 
-  selection.category = tile.dataset.category;
+  const category = row.dataset.category;
 
-  document.querySelectorAll(".qo-category-tile").forEach(t => t.classList.remove("selected"));
-  tile.classList.add("selected");
+  document.querySelectorAll("#qoCategoryList .qo-list-row").forEach(r => r.classList.remove("selected"));
+  row.classList.add("selected");
 
-  setTimeout(() => {
-    advanceTo("qoStep5");
-    renderTypeGrid();
-  }, 150);
+  renderProductList(category);
+  showStep(4);
 });
 
 
 /* =====================================================
-   STEP 5 — TYPE (actual products in that category)
+   STEP 5 — TYPE (real products in that category)
 ===================================================== */
 
-function renderTypeGrid() {
+function renderProductList(categoryLabel) {
 
-  const catDef = CATEGORIES.find(c => c.label === selection.category);
+  const catDef = CATEGORIES.find(c => c.label === categoryLabel);
   const matches = catDef ? productsForCategory(catDef) : [];
 
-  document.getElementById("qoTypeTitle").textContent = `Choose your ${selection.category.toLowerCase()}`;
+  document.getElementById("qoTypeTitle").textContent = `Best ${categoryLabel.toLowerCase()} for your ${phoneLabel()}`;
   document.getElementById("qoTypeSub").textContent =
-    matches.length ? "Tap the one you like" : "No products found in this category yet.";
+    matches.length ? `${matches.length} product${matches.length === 1 ? "" : "s"} found` : "No products found in this category yet.";
 
-  const grid = document.getElementById("qoTypeGrid");
+  const list = document.getElementById("qoProductList");
 
   if (!matches.length) {
-    grid.innerHTML = `<div class="qo-loading">Nothing here yet — try another category or check back soon.</div>`;
+    list.innerHTML = `<div class="qo-loading">Nothing here yet — try another category or check back soon.</div>`;
     return;
   }
 
-  grid.innerHTML = matches.map(p => `
-    <div class="qo-type-tile" data-id="${p.id}">
-      <img class="qo-type-img" src="${escapeHtml(p.image || "")}" alt="${escapeHtml(p.productName || "")}">
-      <div class="qo-type-info">
-        <div class="qo-type-name">${escapeHtml(p.productName || "Product")}</div>
-        <div class="qo-type-price">₹${p.price ?? 0}</div>
+  list.innerHTML = matches.map(p => {
+    const hasDiscount = p.mrp && Number(p.mrp) > Number(p.price);
+    const offPct = hasDiscount ? Math.round((1 - Number(p.price) / Number(p.mrp)) * 100) : 0;
+    const rating = p.rating || 4.5;
+    const ratingCount = p.ratingCount || "";
+
+    return `
+      <div class="qo-product-card">
+        <img class="qo-product-img" src="${escapeHtml(p.image || "")}" alt="${escapeHtml(p.productName || "")}">
+        <div class="qo-product-info">
+          <div class="qo-product-name">${escapeHtml(p.productName || "Product")}</div>
+          <div class="qo-product-for">For ${escapeHtml(phoneLabel())}</div>
+          <div class="qo-product-rating"><span class="star">★</span> ${rating}${ratingCount ? ` (${ratingCount})` : ""}</div>
+          <div class="qo-product-price-row">
+            <span class="qo-product-price">₹${p.price ?? 0}</span>
+            ${hasDiscount ? `<span class="qo-product-mrp">₹${p.mrp}</span><span class="qo-product-off">${offPct}% OFF</span>` : ""}
+          </div>
+          <button type="button" class="qo-order-btn" data-id="${p.id}">Place Order Now</button>
+        </div>
       </div>
-    </div>
-  `).join("");
+    `;
+  }).join("");
 }
 
-document.getElementById("qoTypeGrid").addEventListener("click", (e) => {
-  const tile = e.target.closest(".qo-type-tile");
-  if (!tile) return;
-
-  const product = (allProducts || []).find(p => p.id === tile.dataset.id);
-  if (!product) return;
-
-  selection.product = product;
-  selection.variantIndex = 0;
-
-  document.querySelectorAll(".qo-type-tile").forEach(t => t.classList.remove("selected"));
-  tile.classList.add("selected");
-
-  setTimeout(() => {
-    advanceTo("qoStep6");
-    renderVariantGrid();
-  }, 150);
-});
-
-
-/* =====================================================
-   STEP 6 — VARIANT (product's own photo gallery, used
-   as a "which look do you prefer" picker)
-===================================================== */
-
-function renderVariantGrid() {
-
-  const p = selection.product;
-  const images = Array.isArray(p.images) && p.images.length ? p.images : [p.image].filter(Boolean);
-
-  document.getElementById("qoVariantSub").textContent =
-    images.length > 1
-      ? `${p.productName} — tap the photo/look you prefer`
-      : `${p.productName}`;
-
-  const grid = document.getElementById("qoVariantGrid");
-
-  grid.innerHTML = images.map((img, i) => `
-    <div class="qo-variant-tile ${i === 0 ? "selected" : ""}" data-index="${i}">
-      <img class="qo-variant-img" src="${escapeHtml(img)}" alt="Option ${i + 1}">
-    </div>
-  `).join("");
-
-  renderSummary();
-}
-
-document.getElementById("qoVariantGrid").addEventListener("click", (e) => {
-  const tile = e.target.closest(".qo-variant-tile");
-  if (!tile) return;
-
-  selection.variantIndex = Number(tile.dataset.index);
-
-  document.querySelectorAll(".qo-variant-tile").forEach(t => t.classList.remove("selected"));
-  tile.classList.add("selected");
-
-  renderSummary();
-});
-
-function renderSummary() {
-  const p = selection.product;
-
-  document.getElementById("qoSummaryCard").innerHTML = `
-    <div><b>Phone:</b> ${escapeHtml(selection.brand)} ${escapeHtml(selection.series)} ${escapeHtml(selection.model)}</div>
-    <div><b>Category:</b> ${escapeHtml(selection.category)}</div>
-    <div><b>Product:</b> ${escapeHtml(p.productName || "")}</div>
-    <div><b>Price:</b> ₹${p.price ?? 0}</div>
-  `;
-}
-
-
-/* =====================================================
-   FINAL — ADD TO CART
-===================================================== */
-
-document.getElementById("qoDoneBtn").addEventListener("click", async () => {
+document.getElementById("qoProductList").addEventListener("click", (e) => {
+  const btn = e.target.closest(".qo-order-btn");
+  if (!btn) return;
 
   if (!currentUser) {
-    alert("Please login first");
     window.location.href = "login.html";
     return;
   }
 
-  const p = selection.product;
-  if (!p) return;
-
-  const images = Array.isArray(p.images) && p.images.length ? p.images : [p.image].filter(Boolean);
-  const chosenImage = images[selection.variantIndex] || p.image;
-
-  const btn = document.getElementById("qoDoneBtn");
-  btn.disabled = true;
-  btn.textContent = "Adding...";
-
-  try {
-
-    const cartRef = doc(db, "users", currentUser.uid, "cart", p.id);
-
-    await setDoc(cartRef, {
-      ...p,
-      image: chosenImage,
-      qty: 1,
-      // Note for the seller — which phone this accessory is for.
-      // (This app doesn't have per-model stock/SKUs, so it's
-      // carried as a plain note rather than a strict variant.)
-      phoneNote: `${selection.brand} ${selection.series} ${selection.model}`.trim()
-    });
-
-    advanceTo("qoStepDone");
-
-  } catch (error) {
-    console.error(error);
-    alert(error.message || "Could not add to cart. Please try again.");
-  } finally {
-    btn.disabled = false;
-    btn.textContent = "✅ Add to Cart & Order";
-  }
-
+  // Reuses the shop's existing, working "Buy Now" flow —
+  // same one used from the regular product page.
+  window.location.href = `checkout.html?productId=${btn.dataset.id}&qty=1`;
 });
 
 
@@ -417,6 +404,7 @@ document.getElementById("qoDoneBtn").addEventListener("click", async () => {
 ===================================================== */
 
 renderBrandGrid();
+showStep(0);
 
 onAuthStateChanged(auth, (user) => {
   currentUser = user;
